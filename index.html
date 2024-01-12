@@ -7,32 +7,29 @@
     <link href="style.css" rel="stylesheet" />
     <link rel="stylesheet" href="vendor/coloris.min.css"/>
     <script src="vendor/coloris.min.js"></script>
-    <script>
-        Coloris.setInstance('.instance3', {
-            theme: 'polaroid',
-            swatchesOnly: true
-        });
-    </script>
     <script type="module">
         import __wbg_init, {solveSat} from './pkg/hats.js';
         import createClauses, {fromIndexToHat, addHatsToClauses} from './clauses.js';
         import Grid from './grid.js';
 
-        const grid = new Grid(700, 400, 15, 13);
-        const redraw = grid.redraw;
+        const grid = new Grid(800, 400, 15, 13);
         const canvas = document.getElementById('canvas');
+        const infoBar = document.getElementById('info');
+        infoBar.style.width = "800px";
 
         canvas.addEventListener('keydown', (event) => {
             console.log(event.code);
             if (event.code === 'Escape' && document.getElementById('full-screen').checked) {
+                // Exit full screen
                 document.getElementById('full-screen').checked = false;
-                grid.setDimensions(700, 400);
+                grid.setDimensions(800, 400);
                 document.querySelectorAll('.extras').forEach(el => el.style.display = "block");
+                infoBar.style.width = "800px";
             }
             grid.onKeydown(event);
         });
 
-        canvas.addEventListener('mouseup', redraw);
+        canvas.addEventListener('mouseup', grid.redraw);
         canvas.focus();
 
         window.addEventListener('load', () => {
@@ -60,11 +57,11 @@
                 console.log(e)
             }
 
-            redraw();
+            grid.redraw();
         });
 
         document.addEventListener('change', (event) => {
-            redraw();
+            grid.redraw();
         })
 
         document.getElementById("column-count").addEventListener("change", () => {
@@ -89,7 +86,6 @@
             const t0 = performance.now();
             const x = solveSat(data);
             const t1 = performance.now();
-            console.log('Solved in ', t1-t0, ' milliseconds');
             const ret = JSON.parse(x);
             if (ret.success) {
                 const r = ret.result.filter(i => i > 0);
@@ -102,24 +98,26 @@
                     isSelected: false,
                 };});
                 grid.setHats(hats);
-                redraw();
-                console.log('total', hats);
+                grid.redraw();
+                infoBar.innerText = `Success! Solved in ${(t1-t0).toFixed(2)} milliseconds. ${hats.length} hats`;
             } else {
-                console.log('failed!', ret);
+                infoBar.innerText = `Failed: ${ret.details}`;
             }
         }
         document.getElementById('solve-button').addEventListener('click', solve);
         document.getElementById('full-screen').addEventListener('change', (event) => {
             if (event.target.checked) {
-                grid.setDimensions(window.innerWidth - 5, window.innerHeight - 5);
+                grid.setDimensions(window.innerWidth, window.innerHeight - 35);
                 document.querySelectorAll('.extras').forEach(el => el.style.display = "none");
             }
             canvas.focus();
         });
         window.addEventListener('resize', (event) => {
             if (document.getElementById('full-screen').checked) {
-                grid.setDimensions(window.innerWidth - 5, window.innerHeight - 5);
+                grid.setDimensions(window.innerWidth, window.innerHeight - 35);
                 document.querySelectorAll('.extras').forEach(el => el.style.display = "none");
+                infoBar.style.top = `${window.innerHeight-35}px`;
+                infoBar.style.width = `${window.innerWidth}px`;
             }
         });
 
@@ -138,13 +136,14 @@
             copyText.select();
             document.execCommand('copy');
             alert('URL copied to your clipboard');
-        })
+        });
     </script>
 </head>
 <body>
     <canvas id="canvas" tabindex="0"></canvas>
+    <div id="info"></div>
     <div id="more-button"><input type="button" value="more"/></div>
-    <div>
+    <div id="panels">
         <div id="controls" class="extras">
             <div class="control-row"><span>Columns</span><input type="number" id="column-count" value="15" step="2"></div>
 
@@ -153,8 +152,8 @@
             <div class="control-row"><input id="share-button" type="button" value="Share"/></div>
             <input id="hidden-input"/>
 
-            <input id="show-grid" type="checkbox" checked/>
-            <label for="show-grid">Show grid</label>
+            <div class="control-row"><input id="show-grid" type="checkbox" checked/>
+            <label for="show-grid">Show grid</label></div>
 
             <!-- <input id="show-vertices" type="checkbox" checked/>
             <label for="show-certices">Show vertices</label> -->
@@ -183,7 +182,7 @@
             <div>Instructions</div>
             <div>
             <ul>
-                <li><span class="key">R</span> to rotate selected</li>
+                <li><span class="key">R</span> to rotate selected (<span class="key">Shift</span>+<span class="key">R</span> to rotate the other way)</li>
                 <li><span class="key">A</span> to add a new Hat</li>
                 <li><span class="key">Space</span> to get the mirror image of the Hat</li>
                 <li>Arrow keys to navigate the Hat around the grid</li>

@@ -76,7 +76,10 @@ class Grid {
     rotate(alpha) {
         for (let hat of this.hats) {
             if (hat.isSelected) {
-                const beta = (hat.beta + alpha) % 6;
+                let beta = (hat.beta + alpha) % 6;
+                if (beta < 0) {
+                    beta += 6;
+                }
                 hat.beta = beta;
             }
         }

@@ -3,13 +3,21 @@ body {
     /* overflow: hidden; */
 }
 
-canvas {
-    width: 800px;
-    height: 400px;
+#canvas {
+    position: relative;
+    left: 0px;
+    top: 0px;
     border: 0px solid #333;
 }
 
-canvas:focus-visible {
+#info {
+    position: relative;
+    left: 0px;
+    height: 30px;
+    background-color: #EEE;
+}
+
+#canvas:focus-visible {
     outline: none;
 }
 #controls {
@@ -18,11 +26,6 @@ canvas:focus-visible {
     /* left: 850px; */
     display: flex;
     flex-direction: column;
-}
-
-#extras {
-    /* display: none; */
-
 }
 
 li {
