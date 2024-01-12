@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hats and SAT Solvers</title>
+    <link href="style.css" rel="stylesheet" />
+    <link rel="stylesheet" href="vendor/coloris.min.css"/>
+    <script src="vendor/coloris.min.js"></script>
+    <script>
+        Coloris.setInstance('.instance3', {
+            theme: 'polaroid',
+            swatchesOnly: true
+        });
+    </script>
+    <script type="module">
+        import __wbg_init, {solveSat} from './pkg/hats.js';
+        import createClauses, {fromIndexToHat, addHatsToClauses} from './clauses.js';
+        import Grid from './grid.js';
+
+        const grid = new Grid(700, 400, 15, 13);
+        const redraw = grid.redraw;
+        const canvas = document.getElementById('canvas');
+
+        canvas.addEventListener('keydown', (event) => {
+            console.log(event.code);
+            if (event.code === 'Escape' && document.getElementById('full-screen').checked) {
+                document.getElementById('full-screen').checked = false;
+                grid.setDimensions(700, 400);
+                document.querySelectorAll('.extras').forEach(el => el.style.display = "block");
+            }
+            grid.onKeydown(event);
+        });
+
+        canvas.addEventListener('mouseup', redraw);
+        canvas.focus();
+
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            try { 
+                const data = JSON.parse(urlParams.get('data'));
+                const hats = data.hats.map(h=> {
+                    return {
+                        x: h[0],
+                        y: h[1],
+                        beta: h[2],
+                        sign: h[3],
+                    }
+                });
+                grid.setHats(hats);
+                document.querySelectorAll('.color.hat').forEach( (s, i) => {
+                    s.value = data.hatColors[i];
+                    s.dispatchEvent(new Event('input', { bubbles: true }));
+                });
+                document.querySelectorAll('.color.antihat').forEach( (s, i) => {
+                    s.value = data.antiHatColors[i];
+                    s.dispatchEvent(new Event('input', { bubbles: true }));
+                });
+            } catch(e) {
+                console.log(e)
+            }
+
+            redraw();
+        });
+
+        document.addEventListener('change', (event) => {
+            redraw();
+        })
+
+        document.getElementById("column-count").addEventListener("change", () => {
+            const columnCount = document.getElementById("column-count").valueAsNumber;
+            grid.setColumnCount(columnCount);
+            grid.redraw();
+        });
+
+
+        async function solve() {
+            await __wbg_init();
+            const {columnCount, rowCount} = grid.getDimensions();
+            const data = createClauses(columnCount , rowCount);
+            addHatsToClauses(grid.hats.map((h) => {
+                return {
+                    m: h.x+2,
+                    n: h.y+2,
+                    sign: h.sign,
+                    i: h.beta,
+                }
+            }), data);
+            const t0 = performance.now();
+            const x = solveSat(data);
+            const t1 = performance.now();
+            console.log('Solved in ', t1-t0, ' milliseconds');
+            const ret = JSON.parse(x);
+            if (ret.success) {
+                const r = ret.result.filter(i => i > 0);
+                const hats = r.map(h => fromIndexToHat(h)).map( (h) => { return {
+                    x:h.m - 2,
+                    y:h.n - 2,
+                    beta: h.i,
+                    sign: h.sign,
+                    isDragging: false,
+                    isSelected: false,
+                };});
+                grid.setHats(hats);
+                redraw();
+                console.log('total', hats);
+            } else {
+                console.log('failed!', ret);
+            }
+        }
+        document.getElementById('solve-button').addEventListener('click', solve);
+        document.getElementById('full-screen').addEventListener('change', (event) => {
+            if (event.target.checked) {
+                grid.setDimensions(window.innerWidth - 5, window.innerHeight - 5);
+                document.querySelectorAll('.extras').forEach(el => el.style.display = "none");
+            }
+            canvas.focus();
+        });
+        window.addEventListener('resize', (event) => {
+            if (document.getElementById('full-screen').checked) {
+                grid.setDimensions(window.innerWidth - 5, window.innerHeight - 5);
+                document.querySelectorAll('.extras').forEach(el => el.style.display = "none");
+            }
+        });
+
+        const share_button = document.getElementById('share-button');
+        share_button.addEventListener("click", function () {
+            const href = window.location.href;
+            const url = href.slice(0, href.lastIndexOf('/'));
+            const state = {
+                hatColors: grid.hatColors,
+                antiHatColors: grid.antiHatColors,
+                hats: grid.hats.map((h)=>[h.x,h.y,h.beta,h.sign]),
+            }
+            const copyText = document.getElementById('hidden-input');
+            const share = `${url}/?data=${encodeURIComponent(JSON.stringify(state))}`;
+            copyText.value = share;
+            copyText.select();
+            document.execCommand('copy');
+            alert('URL copied to your clipboard');
+        })
+    </script>
+</head>
+<body>
+    <canvas id="canvas" tabindex="0"></canvas>
+    <div id="more-button"><input type="button" value="more"/></div>
+    <div>
+        <div id="controls" class="extras">
+            <div class="control-row"><span>Columns</span><input type="number" id="column-count" value="15" step="2"></div>
+
+            <div><input type="checkbox" id="full-screen"/><label for="full-screen">Full screen</label></div>
+            <div class="control-row"><input id="solve-button" type="button" value="Solve"/></div>
+            <div class="control-row"><input id="share-button" type="button" value="Share"/></div>
+            <input id="hidden-input"/>
+
+            <input id="show-grid" type="checkbox" checked/>
+            <label for="show-grid">Show grid</label>
+
+            <!-- <input id="show-vertices" type="checkbox" checked/>
+            <label for="show-certices">Show vertices</label> -->
+        </div>
+        <div id="color-scheme" class="extras">
+            <div>
+                <span>Hat:</span>
+                <input type="text" class="color hat" data-coloris value="#6494e433"/>
+                <input type="text" class="color hat" data-coloris value="#6494e433"/>
+                <input type="text" class="color hat" data-coloris value="#6494e433"/>
+                <input type="text" class="color hat" data-coloris value="#6494e433"/>
+                <input type="text" class="color hat" data-coloris value="#6494e433"/>
+                <input type="text" class="color hat" data-coloris value="#6494e433"/>
+            </div><div>
+                <span>Anti Hat:</span>
+                <input type="text" class="color antihat" data-coloris value="#34343433"/>
+                <input type="text" class="color antihat" data-coloris value="#34343433"/>
+                <input type="text" class="color antihat" data-coloris value="#34343433"/>
+                <input type="text" class="color antihat" data-coloris value="#34343433"/>
+                <input type="text" class="color antihat" data-coloris value="#34343433"/>
+                <input type="text" class="color antihat" data-coloris value="#34343433"/>
+            </div>
+
+        </div>
+        <div id="instructions" class="extras">
+            <div>Instructions</div>
+            <div>
+            <ul>
+                <li><span class="key">R</span> to rotate selected</li>
+                <li><span class="key">A</span> to add a new Hat</li>
+                <li><span class="key">Space</span> to get the mirror image of the Hat</li>
+                <li>Arrow keys to navigate the Hat around the grid</li>
+                <li><span class="key">D</span> to delete selected Hat</li>
+                <li>Click on an element to select it (<span class="key">Shift</span>+Click adds to selection)</li>
+                <li><span class="key">Ctrl+A</span> to select all hats</li>
+                <li><span class="key">Esc</span> escapes full screen</li>
+            </ul>
+            <div>Once ready you can click Solve to use a SAT solver. That will find hats that fill the current area. Note that there might be issues at the borders</div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

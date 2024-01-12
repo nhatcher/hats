@@ -1,0 +1,56 @@
+body {
+    margin: 0px;
+    /* overflow: hidden; */
+}
+
+canvas {
+    width: 800px;
+    height: 400px;
+    border: 0px solid #333;
+}
+
+canvas:focus-visible {
+    outline: none;
+}
+#controls {
+    /* position: absolute; */
+    /* top: 0px; */
+    /* left: 850px; */
+    display: flex;
+    flex-direction: column;
+}
+
+#extras {
+    /* display: none; */
+
+}
+
+li {
+    padding: 6px 0px;
+}
+
+#more-button {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    display: none;
+    z-index: -10;
+}
+
+.key {
+    border: 1px solid #EEE;
+    background-color: #DDD;
+    padding: 4px;
+    border-radius: 5px;
+}
+
+#hidden-input {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+    /* display: none; */
+}
+
+  .color {
+    width: 20px;
+  }
