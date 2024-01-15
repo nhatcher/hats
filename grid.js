@@ -210,10 +210,9 @@ class Grid {
         const b = this.b;
         // 1. vertical lines every 3 * a
         {
-            let lineCount = Math.ceil(width / 3 * a);
             ctx.strokeStyle = "#EEE";
             ctx.beginPath();
-            for (let i = 0; i < lineCount; i++) {
+            for (let i = 0; i < this.columnCount; i++) {
                 const x = 3 * a * i + 0.5;
                 ctx.moveTo(x, 0);
                 ctx.lineTo(x, height);
@@ -224,10 +223,9 @@ class Grid {
         // 2. horizontal lines every b
 
         {
-            let lineCount = Math.ceil(height / b);
             ctx.strokeStyle = "#EEE";
             ctx.beginPath();
-            for (let i = 0; i < lineCount; i++) {
+            for (let i = 0; i < this.rowCount; i++) {
                 const y = b * i + 0.5;
                 ctx.moveTo(0, y);
                 ctx.lineTo(width, y);
@@ -237,8 +235,8 @@ class Grid {
 
         // 3. Draw the "triangles"
         {
-            const columnCount = Math.ceil(width / (3 * a));
-            const rowCount = Math.ceil(height / b);
+            const columnCount = this.columnCount;
+            const rowCount = this.rowCount;
 
             ctx.strokeStyle = "#EEE";
             ctx.beginPath();
@@ -315,7 +313,7 @@ class Grid {
         const width = this.width;
         const height = this.height;
         this.hatColors = [...document.querySelectorAll('.color.hat')].map(s => s.value);
-        this.antiHatColors = [...document.querySelectorAll('.color.antihat')].map(s => s.value);
+        this.antiHatColors = [...document.querySelectorAll('.color.cher')].map(s => s.value);
         canvas.width = width;
         canvas.height = height;
         canvas.style.width = `${width}px`;

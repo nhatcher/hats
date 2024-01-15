@@ -18,7 +18,6 @@
         infoBar.style.width = "800px";
 
         canvas.addEventListener('keydown', (event) => {
-            console.log(event.code);
             if (event.code === 'Escape' && document.getElementById('full-screen').checked) {
                 // Exit full screen
                 document.getElementById('full-screen').checked = false;
@@ -49,7 +48,7 @@
                     s.value = data.hatColors[i];
                     s.dispatchEvent(new Event('input', { bubbles: true }));
                 });
-                document.querySelectorAll('.color.antihat').forEach( (s, i) => {
+                document.querySelectorAll('.color.cher').forEach( (s, i) => {
                     s.value = data.antiHatColors[i];
                     s.dispatchEvent(new Event('input', { bubbles: true }));
                 });
@@ -160,7 +159,7 @@
         </div>
         <div id="color-scheme" class="extras">
             <div>
-                <span>Hat:</span>
+                <span>Hat Colors:</span>
                 <input type="text" class="color hat" data-coloris value="#6494e433"/>
                 <input type="text" class="color hat" data-coloris value="#6494e433"/>
                 <input type="text" class="color hat" data-coloris value="#6494e433"/>
@@ -168,13 +167,13 @@
                 <input type="text" class="color hat" data-coloris value="#6494e433"/>
                 <input type="text" class="color hat" data-coloris value="#6494e433"/>
             </div><div>
-                <span>Anti Hat:</span>
-                <input type="text" class="color antihat" data-coloris value="#34343433"/>
-                <input type="text" class="color antihat" data-coloris value="#34343433"/>
-                <input type="text" class="color antihat" data-coloris value="#34343433"/>
-                <input type="text" class="color antihat" data-coloris value="#34343433"/>
-                <input type="text" class="color antihat" data-coloris value="#34343433"/>
-                <input type="text" class="color antihat" data-coloris value="#34343433"/>
+                <span>Cher Colors:</span>
+                <input type="text" class="color cher" data-coloris value="#34343433"/>
+                <input type="text" class="color cher" data-coloris value="#34343433"/>
+                <input type="text" class="color cher" data-coloris value="#34343433"/>
+                <input type="text" class="color cher" data-coloris value="#34343433"/>
+                <input type="text" class="color cher" data-coloris value="#34343433"/>
+                <input type="text" class="color cher" data-coloris value="#34343433"/>
             </div>
 
         </div>
