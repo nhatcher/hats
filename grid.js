@@ -1,12 +1,19 @@
 
 
+// enum Tiles {
+//     Hat=1,
+//     AntiHat,
+//     Turtle,
+//     AntiTurtle,
+// }
+
 
 class Grid {
     width;
     height;
     columnCount;
     rowCount;
-    hats;
+    tiles;
     clickX;
     clickY;
     a;
@@ -20,13 +27,13 @@ class Grid {
 
         this.clickX = null;
         this.clickY = null;
-        this.hats = [{ x: 6, y: 4, isDragging: false, beta: 0, isSelected: true, sign: 1 }];
+        this.tiles = [{ x: 6, y: 4, isDragging: false, beta: 0, isSelected: true, kind: 1 }];
     }
 
-    *selectedHats() {
-        for (let hat of this.hats) {
-            if (hat.isSelected) {
-                yield hat;
+    *selectedTiles() {
+        for (let tile of this.tiles) {
+            if (tile.isSelected) {
+                yield tile;
             }
         }
     }
@@ -64,8 +71,8 @@ class Grid {
         this.redraw();
     }
 
-    setHats = (h) => {
-        this.hats = h;
+    setTiles = (h) => {
+        this.tiles = h;
     }
 
     turn(point, alpha, l) {
@@ -74,77 +81,77 @@ class Grid {
     }
 
     rotate(alpha) {
-        for (let hat of this.hats) {
-            if (hat.isSelected) {
-                let beta = (hat.beta + alpha) % 6;
+        for (let tile of this.tiles) {
+            if (tile.isSelected) {
+                let beta = (tile.beta + alpha) % 6;
                 if (beta < 0) {
                     beta += 6;
                 }
-                hat.beta = beta;
+                tile.beta = beta;
             }
         }
         this.redraw();
     }
 
     toggleSign() {
-        for (let hat of this.hats) {
-            if (hat.isSelected) {
-                hat.sign = -hat.sign;
+        for (let tile of this.tiles) {
+            if (tile.isSelected) {
+                tile.kind = tile.kind % 4 + 1;
             }
         }
         this.redraw();
     }
 
-    deleteHat() {
-        this.hats = this.hats.filter((hat) => !hat.isSelected);
+    deleteTile() {
+        this.tiles = this.tiles.filter((tile) => !tile.isSelected);
         this.redraw();
     }
 
     moveLeft() {
-        for (const hat of this.selectedHats()) {
-            let x = hat.x - 1;
-            const y = hat.x % 2 === 0 ? hat.y + 1 : hat.y - 1;
+        for (const tile of this.selectedTiles()) {
+            let x = tile.x - 1;
+            const y = tile.x % 2 === 0 ? tile.y + 1 : tile.y - 1;
             if (x < -1) {
                 x = x % 2 === 0 ? this.columnCount + 1 : this.columnCount;
             }
-            hat.x = x;
-            hat.y = y;
+            tile.x = x;
+            tile.y = y;
         };
         this.redraw();
     }
 
     moveRight() {
-        for (const hat of this.selectedHats()) {
-            let x = hat.x + 1;
-            const y = hat.x % 2 === 0 ? hat.y + 1 : hat.y - 1;
+        for (const tile of this.selectedTiles()) {
+            let x = tile.x + 1;
+            const y = tile.x % 2 === 0 ? tile.y + 1 : tile.y - 1;
             if (x > this.columnCount + 1) {
                 x = x % 2 === 0 ? 0 : -1;
             }
-            hat.x = x;
-            hat.y = y;
+            tile.x = x;
+            tile.y = y;
         };
         this.redraw();
     }
 
     moveUp() {
-        for (const hat of this.selectedHats()) {
-            let y = hat.y - 2;
+        for (const tile of this.selectedTiles()) {
+            let y = tile.y - 2;
             if (y < -1) {
                 y = y % 2 === 0 ? this.rowCount + 1 : this.rowCount;
             }
-            hat.y = y;
+            tile.y = y;
         };
         this.redraw();
         this.redraw();
     }
 
     moveDown() {
-        for (const hat of this.selectedHats()) {
-            let y = hat.y + 2;
+        for (const tile of this.selectedTiles()) {
+            let y = tile.y + 2;
             if (y > this.rowCount + 1) {
                 y = y % 2 === 0 ? 0 : -1;
             }
-            hat.y = y;
+            tile.y = y;
 
         }
         this.redraw();
@@ -153,7 +160,7 @@ class Grid {
     onKeydown = (event) => {
         switch (event.code) {
             case 'KeyD': {
-                this.deleteHat();
+                this.deleteTile();
                 break;
             }
             case 'KeyR': {
@@ -173,9 +180,8 @@ class Grid {
                 break;
             }
             case 'KeyA': {
-                console.log(event);
                 if (event.ctrlKey) {
-                    this.hats.forEach(h => h.isSelected = true);
+                    this.tiles.forEach(h => h.isSelected = true);
                     this.redraw();
                 } else {
                     this.add();
@@ -208,9 +214,10 @@ class Grid {
         const height = this.height;
         const a = this.a;
         const b = this.b;
+        ctx.strokeStyle = "#EEE";
+        ctx.lineWidth = 1;
         // 1. vertical lines every 3 * a
         {
-            ctx.strokeStyle = "#EEE";
             ctx.beginPath();
             for (let i = 0; i < this.columnCount; i++) {
                 const x = 3 * a * i + 0.5;
@@ -223,7 +230,6 @@ class Grid {
         // 2. horizontal lines every b
 
         {
-            ctx.strokeStyle = "#EEE";
             ctx.beginPath();
             for (let i = 0; i < this.rowCount; i++) {
                 const y = b * i + 0.5;
@@ -238,7 +244,6 @@ class Grid {
             const columnCount = this.columnCount;
             const rowCount = this.rowCount;
 
-            ctx.strokeStyle = "#EEE";
             ctx.beginPath();
 
             for (let row = 0; row < rowCount; row++) {
@@ -298,11 +303,11 @@ class Grid {
     }
 
     add() {
-        for (const hat of this.hats) {
-            hat.isSelected = false;
+        for (const tile of this.tiles) {
+            tile.isSelected = false;
         }
-        this.hats.push(
-            { x: 1, y: 1, isDragging: false, beta: 0, isSelected: true, sign: 1 }
+        this.tiles.push(
+            { x: 1, y: 1, isDragging: false, beta: 0, isSelected: true, kind: 1 }
         );
 
         this.redraw();
@@ -314,6 +319,8 @@ class Grid {
         const height = this.height;
         this.hatColors = [...document.querySelectorAll('.color.hat')].map(s => s.value);
         this.antiHatColors = [...document.querySelectorAll('.color.cher')].map(s => s.value);
+        this.turtleColors = [...document.querySelectorAll('.color.turtle')].map(s => s.value);
+        this.antiTurtleColors = [...document.querySelectorAll('.color.anti-turtle')].map(s => s.value);
         canvas.width = width;
         canvas.height = height;
         canvas.style.width = `${width}px`;
@@ -332,8 +339,8 @@ class Grid {
             this.clickX = clientX - left;
             this.clickY = clientY - top;
             if (!e.shiftKey) {
-                for (const hat of this.hats) {
-                    hat.isSelected = false;
+                for (const tile of this.tiles) {
+                    tile.isSelected = false;
                 }
             }
         } else {
@@ -341,24 +348,23 @@ class Grid {
             this.clickY = undefined;
         }
 
-        for (let hat of this.hats) {
-            this.drawHat(hat, ctx);
+        for (const tile of this.tiles) {
+            this.drawHat(tile, ctx);
         }
     }
 
-    drawHat(hat, ctx) {
+    drawHat(tile, ctx) {
         const a = this.a;
         const b = this.b;
-        let x = hat.x * 3 * a;
-        let y = hat.y * b;
+        let x = tile.x * 3 * a;
+        let y = tile.y * b;
 
-        let beta = hat.beta * Math.PI / 3;
-        if (hat.sign === -1) {
+        let beta = tile.beta * Math.PI / 3;
+        if (tile.kind === 2) {
             beta += Math.PI;
         }
 
-        // draw the hat
-        const trips = [
+        const hatEdges = [
             [90, b],     // 2
             [0, a],      // 3
             [60, a],     // 4
@@ -374,30 +380,59 @@ class Grid {
             [30, b]     // 14
         ];
 
+        const turtleEdges = [
+            [90, b],       // 1
+            [0, a],        // 2
+            [-60, a],      // 3
+            [30, b],       // 4
+            [-30, b],      // 5
+            [-120, a],     // 6
+            [-180, a],     // 7
+            [-90, b],      // 8
+            [-150, 2 * b], // 9
+            [-210, b],     // 10
+            [60, a],       // 11
+            [120, a],      // 12
+            [30, b],       // 13
+        ];
+
         ctx.beginPath();
 
         ctx.moveTo(x, y);
 
-        for (let trip of trips) {
-            const [xn, yn] = this.turn([x, y], hat.sign * trip[0] * Math.PI / 180 + beta, trip[1]);
+        const sign = [1, 3].includes(tile.kind)? 1 : -1;
+        const edges = [1, 2].includes(tile.kind) ? hatEdges: turtleEdges;
+        for (const edge of edges) {
+            const [xn, yn] = this.turn([x, y], sign * edge[0] * Math.PI / 180 + beta, edge[1]);
             ctx.lineTo(xn, yn);
             x = xn;
             y = yn;
         }
 
         if ((this.clickX && this.clickY) && ctx.isPointInPath(this.clickX, this.clickY)) {
-            hat.isSelected = true;
+            tile.isSelected = true;
         }
 
 
         ctx.strokeStyle = "#333";
 
-        if (hat.sign === 1) {
-            ctx.fillStyle = this.hatColors[hat.beta];
-        } else {
-            ctx.fillStyle = this.antiHatColors[hat.beta];
+        switch (tile.kind) {
+            case 1:
+                ctx.fillStyle = this.hatColors[tile.beta];
+                break;
+            case 2:
+                ctx.fillStyle = this.antiHatColors[tile.beta];
+                break;
+            case 3:
+                ctx.fillStyle = this.turtleColors[tile.beta];
+                break;
+            case 4:
+                ctx.fillStyle = this.antiTurtleColors[tile.beta];
+                break;
+            default:
+                throw new Error(`Invalid kind: ${tile.kind}`);
         }
-        if (hat.isSelected) {
+        if (tile.isSelected) {
             ctx.lineWidth = 2;
         } else {
             ctx.lineWidth = 1;

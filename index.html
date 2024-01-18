@@ -9,7 +9,7 @@
     <script src="vendor/coloris.min.js"></script>
     <script type="module">
         import __wbg_init, {solveSat} from './pkg/hats.js';
-        import createClauses, {fromIndexToHat, addHatsToClauses} from './clauses.js';
+        import createClauses, {fromIndexToTile, addHatsToClauses} from './clauses.js';
         import Grid from './grid.js';
 
         const grid = new Grid(800, 400, 15, 13);
@@ -43,7 +43,7 @@
                         sign: h[3],
                     }
                 });
-                grid.setHats(hats);
+                grid.setTiles(hats);
                 document.querySelectorAll('.color.hat').forEach( (s, i) => {
                     s.value = data.hatColors[i];
                     s.dispatchEvent(new Event('input', { bubbles: true }));
@@ -53,7 +53,7 @@
                     s.dispatchEvent(new Event('input', { bubbles: true }));
                 });
             } catch(e) {
-                console.log(e)
+                // console.log(e);
             }
 
             grid.redraw();
@@ -73,12 +73,25 @@
         async function solve() {
             await __wbg_init();
             const {columnCount, rowCount} = grid.getDimensions();
-            const data = createClauses(columnCount , rowCount);
-            addHatsToClauses(grid.hats.map((h) => {
+            const tileKinds = [];
+            if (document.getElementById("tiles-hat").checked) {
+                tileKinds.push(1);
+            }
+            if (document.getElementById("tiles-anti-hat").checked) {
+                tileKinds.push(2);
+            }
+            if (document.getElementById("tiles-turtle").checked) {
+                tileKinds.push(3);
+            }
+            if (document.getElementById("tiles-anti-turtle").checked) {
+                tileKinds.push(4);
+            }
+            const data = createClauses(columnCount , rowCount, tileKinds);
+            addHatsToClauses(grid.tiles.map((h) => {
                 return {
                     m: h.x+2,
                     n: h.y+2,
-                    sign: h.sign,
+                    kind: h.kind,
                     i: h.beta,
                 }
             }), data);
@@ -88,17 +101,17 @@
             const ret = JSON.parse(x);
             if (ret.success) {
                 const r = ret.result.filter(i => i > 0);
-                const hats = r.map(h => fromIndexToHat(h)).map( (h) => { return {
+                const tiles = r.map(h => fromIndexToTile(h)).map( (h) => { return {
                     x:h.m - 2,
                     y:h.n - 2,
                     beta: h.i,
-                    sign: h.sign,
+                    kind: h.kind,
                     isDragging: false,
                     isSelected: false,
                 };});
-                grid.setHats(hats);
+                grid.setTiles(tiles);
                 grid.redraw();
-                infoBar.innerText = `Success! Solved in ${(t1-t0).toFixed(2)} milliseconds. ${hats.length} hats`;
+                infoBar.innerText = `Success! Solved in ${(t1-t0).toFixed(2)} milliseconds. ${tiles.length} hats`;
             } else {
                 infoBar.innerText = `Failed: ${ret.details}`;
             }
@@ -127,7 +140,7 @@
             const state = {
                 hatColors: grid.hatColors,
                 antiHatColors: grid.antiHatColors,
-                hats: grid.hats.map((h)=>[h.x,h.y,h.beta,h.sign]),
+                hats: grid.tiles.map((h)=>[h.x,h.y,h.beta,h.kind]),
             }
             const copyText = document.getElementById('hidden-input');
             const share = `${url}/?data=${encodeURIComponent(JSON.stringify(state))}`;
@@ -167,7 +180,7 @@
                 <input type="text" class="color hat" data-coloris value="#6494e433"/>
                 <input type="text" class="color hat" data-coloris value="#6494e433"/>
             </div><div>
-                <span>Cher Colors:</span>
+                <span>Anti-Hat Colors:</span>
                 <input type="text" class="color cher" data-coloris value="#34343433"/>
                 <input type="text" class="color cher" data-coloris value="#34343433"/>
                 <input type="text" class="color cher" data-coloris value="#34343433"/>
@@ -175,7 +188,33 @@
                 <input type="text" class="color cher" data-coloris value="#34343433"/>
                 <input type="text" class="color cher" data-coloris value="#34343433"/>
             </div>
-
+            <div>
+                <span>Turtle Colors:</span>
+                <input type="text" class="color turtle" data-coloris value="#d4553e33"/>
+                <input type="text" class="color turtle" data-coloris value="#d4553e33"/>
+                <input type="text" class="color turtle" data-coloris value="#d4553e33"/>
+                <input type="text" class="color turtle" data-coloris value="#d4553e33"/>
+                <input type="text" class="color turtle" data-coloris value="#d4553e33"/>
+                <input type="text" class="color turtle" data-coloris value="#d4553e33"/>
+            </div><div>
+                <span>Anti-Turtle Colors:</span>
+                <input type="text" class="color anti-turtle" data-coloris value="#ffe60033"/>
+                <input type="text" class="color anti-turtle" data-coloris value="#ffe60033"/>
+                <input type="text" class="color anti-turtle" data-coloris value="#ffe60033"/>
+                <input type="text" class="color anti-turtle" data-coloris value="#ffe60033"/>
+                <input type="text" class="color anti-turtle" data-coloris value="#ffe60033"/>
+                <input type="text" class="color anti-turtle" data-coloris value="#ffe60033"/>
+            </div>
+        </div>
+        <div id="tiles" class="extras">
+            <div class="control-row"><input id="tiles-hat" type="checkbox" checked/>
+            <label for="tiles-hat">Hat</label></div>
+            <div class="control-row"><input id="tiles-anti-hat" type="checkbox" checked/>
+            <label for="tiles-anti-hat">Anti Hat</label></div>
+            <div class="control-row"><input id="tiles-turtle" type="checkbox"/>
+            <label for="tiles-turle">Turtle</label></div>
+            <div class="control-row"><input id="tiles-anti-turtle" type="checkbox"/>
+            <label for="tiles-anit-turtle">Anti turtle</label></div>
         </div>
         <div id="instructions" class="extras">
             <div>Instructions</div>
