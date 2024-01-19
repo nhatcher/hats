@@ -67,11 +67,7 @@ const createClauses = () => {
             }
         }
     }
-    for (let i = 0; i < data.length; i++) {
-        if (data[i] === 0) {
-            console.log("Error", i);
-        }
-    }
+
     return {
         data,
         clausesCount,

@@ -16,6 +16,11 @@
         align-items: center;
       }
 
+      #wrapper {
+        display: flex;
+        flex-direction: column;
+      }
+
       #board {
         padding: 7px;
         background: black;
@@ -25,7 +30,20 @@
         grid-template-columns: repeat(9, auto);
         column-gap: 2px;
         row-gap: 2px;
-        margin-bottom: 70px;
+        margin-bottom: 2px;
+      }
+
+      #info {
+        height: 30px;
+        line-height: 30px;
+        font-family: 'Courier New', Courier, monospace;
+        background: #EEE;
+        padding-left: 10px;
+      }
+      #solve-button {
+        width: 160px;
+        align-self: end;
+        border-radius: 5px;
       }
 
       .cell {
@@ -60,17 +78,6 @@
       .cell:nth-child(27n + 35),
       .cell:nth-child(27n + 36) {
         margin-top: 3px;
-      }
-
-      #board::after {
-        content: " ";
-        position: absolute;
-        top: 497px;
-        height: 50px;
-        width: 500px;
-        left: calc(100vw / 2 - 250px);
-        z-index: 5;
-        background: rgba(255, 255, 255, 0.623);
       }
 
       .cell input {
@@ -147,22 +154,29 @@
                 values.push(rowValue);
             }
             addClauses(values, data);
+            const t0 = performance.now();
             const ret = JSON.parse(solveSat(data.data));
-            console.log(ret);
+            const t1 = performance.now();
             if (ret.success) {
                 const cells = ret.result.filter(s => s > 0).map( s=>fromIndexToCell(s));
                 for (const cell of cells) {
                     const {row, column, n} = cell;
                     const cellEl = document.getElementById(`row-${row}-column-${column}`);
+                    if (!cellEl.value) {
+                        cellEl.style.color = "lightblue";
+                    }
                     cellEl.value = n;
 
                 }
+                document.getElementById("info").innerText = `Success. Solved in ${((t1-t0)/1000).toFixed(2)} seconds`;
+            } else {
+                document.getElementById("info").innerText = `Failed: ${ret.details}`;
             }
         }
         window.addEventListener('load', main);
         document.getElementById("solve-button").addEventListener('click', solve);
     </script>
-    <div>
+    <div id="wrapper">
       <div id="board">
         <div class="cell">
           <input type="number" id="row-0-column-0" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
@@ -489,6 +503,7 @@
         </div>
 
       </div>
+      <div id="info"></div>
       <button type="button" id="solve-button">Solve Sudoku</button>
     </div>
   </body>
