@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slpr SAT Solver</title>
+    <style>
+        body {
+            font-size: 20px;
+        }
+        textarea {
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            padding: 10px;
+            max-width: 100%;
+            line-height: 1.5;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-shadow: 1px 1px 1px #999;
+        }
+        #result {
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+    <script type="module">
+        import __wbg_init, { solveSat } from './pkg/splr_wasm.js';
+        async function init() {
+            await __wbg_init();
+        }
+        init();
+
+        function solve() {
+            const statements = document.getElementById("textarea").value.trim().split('\n');
+            const dict = {}; // variable-name => index
+            const variables = [];
+            // The data we are sending to solveSat
+            // It is an array that translates into an array of arrays:
+            // [l1, e1_1, ..., e1_l1, l2, e2_1, ..., e2_l2, ...]
+            // where l1 is the length of the first array and [e1_1, ..., e1_l1] is the array
+            const data = [];
+            let index = 0;
+            for (const statement of statements) {
+                const phases = statement.split(" or ").map(s => s.trim());
+                const line = [];
+                for (const phase of phases) {
+                    let sign = 1;
+                    let name = phase;
+                    if (phase.startsWith("not")) {
+                        name = phase.slice(3).trim();
+                        sign = -1;
+                    }
+                    if (name in dict) {
+                        line.push(sign*dict[name]);
+                    } else {
+                        index += 1;
+                        dict[name] = index;
+                        variables.push(name);
+                        line.push(sign*dict[name]);
+                    }
+                }
+                data.push(line.length, ...line);
+            }
+            const ret = JSON.parse(solveSat(data));
+            if (!ret.success) {
+                document.getElementById('result').innerText = ret.details;
+            } else {
+                const result = ret.result;
+                let text = [];
+                for (let i=0; i<result.length; i++) {
+                    const value = result[i];
+                    const index = Math.abs(value) - 1;
+                    if (value<0) {
+                        text.push(`<div>${variables[index]} is false</div>`);
+                    } else {
+                        text.push(`<div>${variables[index]} is true</div>`);
+                    }
+                }
+                document.getElementById('result').innerHTML = text.join('');
+            }
+        }
+        document.getElementById("solve-button").addEventListener('click', solve);
+    </script>
+</head>
+<body>
+<div>
+    In the textarea each line in an statement. They all need to be true. <br />
+    Each statement is a set of "or" phases and each phase is a "<code>name</code>" or "<code>not name</code>". <br />
+    Variable names are converted to numbers. <br />
+    For example, for a SAT solver the statement "<code>not a or not b or c</code>" is the array: <br />
+    <code>[-1, -2, 3]</code>
+</div>
+<textarea id="textarea" rows="6" cols="33">
+a or b
+not a or c
+not a or d or not e
+not b or not d
+not b or e
+</textarea>
+<input type="button" value="solve" id="solve-button"/>
+<div>Result:</div>
+<div id="result"></div>
+</body>
+</html>

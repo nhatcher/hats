@@ -40,6 +40,7 @@ const createClauses = (maxX, maxY, kinds) => {
     tileKinds = kinds;
     let clausesCount = 0;
     let data = [];
+    let variableCount = 0;
     for (let m = 0; m <= mMax; m++) {
         for (let n = 0; n <= nMax; n++) {
             if (n % 2 !== m % 2) {
@@ -50,6 +51,7 @@ const createClauses = (maxX, maxY, kinds) => {
                 for (const kind1 of tileKinds) {
                     const tile1 = { m, n, i: i, kind: kind1 };
                     const index1 = fromTileToIndex(tile1);
+                    variableCount = Math.max(index1, variableCount);
                     for (let j = 0; j < 6; j++) {
                         for (const kind2 of tileKinds) {
                             if (i === j && kind1 === kind2) {

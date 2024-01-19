@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Sudoku with a SAT Solver</title>
+  </head>
+  <body>
+    <style>
+        /* https://github.com/crillab/gophersat/blob/master/examples/sat-for-noobs.md
+      */
+        body {
+        display: grid;
+        justify-items: center;
+        align-items: center;
+      }
+
+      #board {
+        padding: 7px;
+        background: black;
+
+        display: grid;
+        grid-template-rows: repeat(9, auto);
+        grid-template-columns: repeat(9, auto);
+        column-gap: 2px;
+        row-gap: 2px;
+        margin-bottom: 70px;
+      }
+
+      .cell {
+        width: 50px;
+        height: 50px;
+        background: white;
+
+        display: grid;
+        justify-items: center;
+        align-items: center;
+      }
+
+      .cell:hover {
+        background: rgb(214, 233, 240);
+      }
+
+      .cell:focus {
+        background: lightblue;
+      }
+
+      .cell:nth-child(3n):not(:nth-child(9n)) {
+        margin-right: 3px;
+      }
+
+      .cell:nth-child(27n + 28),
+      .cell:nth-child(27n + 29),
+      .cell:nth-child(27n + 30),
+      .cell:nth-child(27n + 31),
+      .cell:nth-child(27n + 32),
+      .cell:nth-child(27n + 33),
+      .cell:nth-child(27n + 34),
+      .cell:nth-child(27n + 35),
+      .cell:nth-child(27n + 36) {
+        margin-top: 3px;
+      }
+
+      #board::after {
+        content: " ";
+        position: absolute;
+        top: 497px;
+        height: 50px;
+        width: 500px;
+        left: calc(100vw / 2 - 250px);
+        z-index: 5;
+        background: rgba(255, 255, 255, 0.623);
+      }
+
+      .cell input {
+        width: 40px;
+        height: 40px;
+        overflow: hidden;
+        font-size: 36px;
+        border-radius: 0;
+        padding: 0;
+        border: 1px solid black;
+        text-align: center;
+        
+        -moz-appearance: textfield;
+        -webkit-appearance: textfield;
+      }
+      /* Chrome, Safari, Edge, Opera */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+        }
+
+        /* Firefox */
+        input[type=number] {
+        -moz-appearance: textfield;
+        }
+      
+    </style>
+    <script type="module">
+        import __wbg_init, { solveSat } from './pkg/splr_wasm.js';
+        import createClauses, { addClauses, fromIndexToCell } from './sudoku.js';
+        
+        async function init() {
+            await __wbg_init();
+        }
+        init();
+
+        function main() {
+            const values = [
+                [5, 3, 0, 0, 7, 0, 0, 0, 0],
+                [6, 0, 0, 1, 9, 5, 0, 0, 0],
+                [0, 9, 8, 0, 0, 0, 0, 6, 0],
+                [8, 0, 0, 0, 6, 0, 0, 0, 3],
+                [4, 0, 0, 8, 0, 3, 0, 0, 1],
+                [7, 0, 0, 0, 2, 0, 0, 0, 6],
+                [0, 6, 0, 0, 0, 0, 2, 8, 0],
+                [0, 0, 0, 4, 1, 9, 0, 0, 5],
+                [0, 0, 0, 0, 8, 0, 0, 7, 9],
+            ];
+            for (let row=0; row<9; row++) {
+                for (let column=0; column<9; column++) {
+                    const value = values[row][column];
+                    if (value !== 0) {
+                    const cell = document.getElementById(`row-${row}-column-${column}`);
+                    cell.value = value;
+                    }
+                }
+            }
+        }
+        function solve() {
+            const values = [];
+            const data = createClauses();
+            for (let row=0; row<9; row++) {
+                const rowValue = [];
+                for (let column=0; column<9; column++) {
+                    const cell = document.getElementById(`row-${row}-column-${column}`);
+                    const value = cell.value;
+                    if (value && value > 0 && value < 10 && Math.floor(value) === value) {
+                        rowValue.push(value);
+                    } else {
+                        rowValue.push(0);
+                    }
+                }
+                values.push(rowValue);
+            }
+            addClauses(values, data);
+            const ret = JSON.parse(solveSat(data.data));
+            console.log(ret);
+            if (ret.success) {
+                const cells = ret.result.filter(s => s > 0).map( s=>fromIndexToCell(s));
+                for (const cell of cells) {
+                    const {row, column, n} = cell;
+                    const cellEl = document.getElementById(`row-${row}-column-${column}`);
+                    cellEl.value = n;
+
+                }
+            }
+        }
+        window.addEventListener('load', main);
+        document.getElementById("solve-button").addEventListener('click', solve);
+    </script>
+    <div>
+      <div id="board">
+        <div class="cell">
+          <input type="number" id="row-0-column-0" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-0-column-1" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-0-column-2" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-0-column-3" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-0-column-4" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-0-column-5" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-0-column-6" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-0-column-7" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-0-column-8" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-1-column-0" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-1-column-1" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-1-column-2" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-1-column-3" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-1-column-4" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-1-column-5" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-1-column-6" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-1-column-7" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-1-column-8" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-2-column-0" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-2-column-1" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-2-column-2" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-2-column-3" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-2-column-4" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-2-column-5" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-2-column-6" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-2-column-7" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-2-column-8" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-3-column-0" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-3-column-1" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-3-column-2" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-3-column-3" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-3-column-4" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-3-column-5" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-3-column-6" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-3-column-7" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-3-column-8" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-4-column-0" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-4-column-1" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-4-column-2" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-4-column-3" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-4-column-4" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-4-column-5" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-4-column-6" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-4-column-7" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-4-column-8" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-5-column-0" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-5-column-1" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-5-column-2" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-5-column-3" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-5-column-4" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-5-column-5" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-5-column-6" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-5-column-7" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-5-column-8" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-6-column-0" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-6-column-1" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-6-column-2" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-6-column-3" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-6-column-4" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-6-column-5" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-6-column-6" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-6-column-7" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-6-column-8" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-7-column-0" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-7-column-1" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-7-column-2" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-7-column-3" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-7-column-4" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-7-column-5" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-7-column-6" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-7-column-7" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-7-column-8" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-8-column-0" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-8-column-1" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-8-column-2" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-8-column-3" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-8-column-4" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-8-column-5" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-8-column-6" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-8-column-7" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+        
+        <div class="cell">
+          <input type="number" id="row-8-column-8" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
+        </div>
+
+      </div>
+      <button type="button" id="solve-button">Solve Sudoku</button>
+    </div>
+  </body>
+</html>
