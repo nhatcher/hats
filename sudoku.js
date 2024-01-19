@@ -80,7 +80,7 @@ const addClauses = (values, data) => {
         for (let column = 0; column < 9; column++) {
             const value = values[row][column];
             if (value !== 0) {
-                data.push(1, row * 9 * 9 + column * 9 + n);
+                data.push(1, row * 9 * 9 + column * 9 + value);
             }
         }
     }
