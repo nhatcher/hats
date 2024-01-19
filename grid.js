@@ -159,7 +159,7 @@ class Grid {
 
     onKeydown = (event) => {
         switch (event.code) {
-            case 'KeyD': {
+            case 'Delete': {
                 this.deleteTile();
                 break;
             }

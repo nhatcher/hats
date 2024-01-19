@@ -86,7 +86,7 @@
             if (document.getElementById("tiles-anti-turtle").checked) {
                 tileKinds.push(4);
             }
-            const data = createClauses(columnCount , rowCount, tileKinds);
+            const {data, clausesCount} = createClauses(columnCount , rowCount, tileKinds);
             addHatsToClauses(grid.tiles.map((h) => {
                 return {
                     m: h.x+2,
@@ -111,7 +111,7 @@
                 };});
                 grid.setTiles(tiles);
                 grid.redraw();
-                infoBar.innerText = `Success! Solved in ${(t1-t0).toFixed(2)} milliseconds. ${tiles.length} hats`;
+                infoBar.innerText = `Success! Solved in ${(t1-t0).toFixed(2)} milliseconds. ${tiles.length} tiles and ${clausesCount} clauses`;
             } else {
                 infoBar.innerText = `Failed: ${ret.details}`;
             }
@@ -220,13 +220,13 @@
             <div>Instructions</div>
             <div>
             <ul>
-                <li><span class="key">R</span> to rotate selected (<span class="key">Shift</span>+<span class="key">R</span> to rotate the other way)</li>
-                <li><span class="key">A</span> to add a new Hat</li>
-                <li><span class="key">Space</span> to get the mirror image of the Hat</li>
-                <li>Arrow keys to navigate the Hat around the grid</li>
-                <li><span class="key">D</span> to delete selected Hat</li>
-                <li>Click on an element to select it (<span class="key">Shift</span>+Click adds to selection)</li>
-                <li><span class="key">Ctrl+A</span> to select all hats</li>
+                <li><span class="key">R</span> to rotate selected tiles (<span class="key">Shift</span>+<span class="key">R</span> to rotate the other way)</li>
+                <li><span class="key">A</span> to add a new tile</li>
+                <li><span class="key">Space</span> to cycle throw the different tiles</li>
+                <li>Arrow keys to navigate the selected tiles around the grid</li>
+                <li><span class="key">Delete</span> to delete selected tiles</li>
+                <li>Click on a tile to select it (<span class="key">Shift</span>+Click adds to selection)</li>
+                <li><span class="key">Ctrl+A</span> to select all tiles</li>
                 <li><span class="key">Esc</span> escapes full screen</li>
             </ul>
             <div>Once ready you can click Solve to use a SAT solver. That will find hats that fill the current area. Note that there might be issues at the borders</div>

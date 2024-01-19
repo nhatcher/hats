@@ -1,5 +1,3 @@
-
-// import {kiteIsInAntiHat, kiteIsInHat, hatsCollide} from './hats.js';
 import { tilesCollide, kiteIsInTile } from './tiles.js';
 
 let mMax = 45;
@@ -10,20 +8,7 @@ const tilesAreEqual = (tile1, tile2) => {
     return tile1.m !== tile2.m && tile1.n !== tile2.n && tile1.i !== tile2.i && tile1.kind !== tile2.kind;
 }
 
-const assertTilesAreEqual = (tile1, tile2) => {
-    if (tilesAreEqual(tile1, tile2)) {
-        throw Error(`Tiles are different ${tile1} != ${tile2}`);
-    }
-}
-
 const fromTileToIndex = (tile) => {
-    const index = _fromTileToIndex(tile);
-    const t = fromIndexToTile(index);
-    assertTilesAreEqual(tile, t);
-    return index;
-}
-
-const _fromTileToIndex = (tile) => {
     const tileCount = tileKinds.length;
     const { m, n, i, kind } = tile;
     const index = n * (mMax + 1) * (3 * tileCount) + Math.floor(m / 2) * (tileCount * 6) + i + 1;
@@ -53,6 +38,7 @@ const createClauses = (maxX, maxY, kinds) => {
     mMax = maxX + 4;
     nMax = maxY + 4;
     tileKinds = kinds;
+    let clausesCount = 0;
     let data = [];
     for (let m = 0; m <= mMax; m++) {
         for (let n = 0; n <= nMax; n++) {
@@ -72,6 +58,7 @@ const createClauses = (maxX, maxY, kinds) => {
                             const index2 = fromTileToIndex({ m, n, i: j, kind: kind2 });
                             // add statement [-index1, -index2]
                             data.push(2, -index1, -index2);
+                            clausesCount++;
                         }
                     }
                 }
@@ -93,6 +80,7 @@ const createClauses = (maxX, maxY, kinds) => {
                                     const index2 = fromTileToIndex(tile2);
                                     // add statement [-index1, -index2]
                                     data.push(2, -index1, -index2);
+                                    clausesCount++
                                 }
                             }
                         }
@@ -126,10 +114,11 @@ const createClauses = (maxX, maxY, kinds) => {
                 // add statement indices
                 console.assert(indices.length > 0);
                 data.push(indices.length, ...indices);
+                clausesCount++;
             }
         }
     }
-    return data;
+    return {data, clausesCount};
 }
 
 const addHatsToClauses = (tiles, data) => {

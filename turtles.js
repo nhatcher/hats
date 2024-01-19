@@ -1,7 +1,7 @@
 
 export const getKitesInTurtle = (tile) => {
     const {m, n, i} = tile;
-    const kites = [...[4, 5, 0, 1].map(s => [m, n, (s + i) % 6])];
+    const kites = [4, 5, 0, 1].map(s => [m, n, (s + i) % 6]);
     const vertices = [[1, -1], [0, -2], [-1, -1], [-1, 1], [0, 2], [1, 1]];
 
     const vertex1 = vertices[i];
@@ -18,7 +18,7 @@ export const getKitesInTurtle = (tile) => {
 
 export const getKitesInAntiTurtle = (tile) => {
     const {m, n, i} = tile;
-    const kites = [...[5, 0, 1, 2].map(s => [m, n, (s + i) % 6])];
+    const kites = [5, 0, 1, 2].map(s => [m, n, (s + i) % 6]);
     const vertices = [[1, -1], [0, -2], [-1, -1], [-1, 1], [0, 2], [1, 1]];
 
     const vertex1 = vertices[(i + 5) % 6];
