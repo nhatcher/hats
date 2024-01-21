@@ -141,9 +141,11 @@
             for (let row=0; row<9; row++) {
                 for (let column=0; column<9; column++) {
                     const value = values[row][column];
-                    if (value !== 0) {
                     const cell = document.getElementById(`row-${row}-column-${column}`);
-                    cell.value = value;
+                    if (value !== 0) {
+                      cell.value = value;
+                    } else {
+                      cell.value = '';
                     }
                 }
             }
