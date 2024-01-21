@@ -1,3 +1,4 @@
+// https://github.com/crillab/gophersat/blob/master/examples/sat-for-noobs.md
 
 // the statement there is a number n in (row, column) has index:
 // index = row*9*9+column*9+n
