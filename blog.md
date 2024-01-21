@@ -75,6 +75,53 @@ So, for instance the array of arrays:
 ]
 ```
 
+## Intermezzo: Using a SAT solver to solve Sudokus
+
+Instead of jumping right at the main issue let's use the algorithm to solve a _different_ problem.
+
+There are 81 squares on a sudoku board and any number from 1 to 9 can be in any of those squares.
+
+Our variables are:
+
+* The is a number `n` in square (row, column)
+
+where n in [1, .., 9] and row, column in [0, .., 8]
+
+There are 8x8x8 = 729 variables in total and only 81 of them can be true.
+We need to index each variable, so the previous statement ("There is an n in square (row, column)") is the variable number:
+
+```
+index = row*9*9+column*9+n
+```
+
+We also need a way to get (row, column) and n from the index:
+
+```javascript
+const fromIndexToCell = (index) => {
+    const row = Math.floor((index - 1) / 81);
+    const column = Math.floor((index - 1 - row * 81) / 9);
+    const n = index - row * 81 - column * 9;
+    return { row, column, n };
+}
+```
+
+Now we need to create all the clauses. For instance, One of the following must be true 
+ * number 1 is in (row=0, column=0)
+ * number 1 is in (row=0, column=1)
+ ...
+ * number 1 is in (row=0, column=7)
+ That's one clause. We have 9 of those, one for each number n. But of course we have 9 rows. So we have 81 of those.
+ We can do the same in columns, so we have 81 clauses for columns.
+ We should do that again for every 3x3 block, another 81 clauses.
+
+ That's 81x3 clauses.
+
+ We still need more clauses. One solution of all the previous clauses is make all of them true.
+
+ On each square there can only be a number. For instance:
+ * NOT(number 1 is in (row=3, column=4))
+ * NOT(number 2 is in (row=3, column=4))
+ 
 ## Using a SAT solver to find solutions to the tiling problem
 See [Hastings Greer's post](https://www.hgreer.com/HatTile/) for a solution using Microsoft z3 solver. 
 
