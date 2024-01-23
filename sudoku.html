@@ -150,6 +150,15 @@
                 }
             }
         }
+        function reset() {
+          for (let row=0; row<9; row++) {
+                for (let column=0; column<9; column++) {
+                    const value = values[row][column];
+                    const cell = document.getElementById(`row-${row}-column-${column}`);
+                    cell.value = '';
+                }
+            }
+        }
         function solve() {
             const values = [];
             const data = createClauses();
@@ -188,6 +197,7 @@
         }
         window.addEventListener('load', main);
         document.getElementById("solve-button").addEventListener('click', solve);
+        document.getElementById("reset-button").addEventListener('click', reset);
     </script>
     <div id="wrapper">
       <div id="board">
@@ -517,6 +527,7 @@
 
       </div>
       <div id="info"></div>
+      <button type="button" id="reset-button">Reset</button>
       <button type="button" id="solve-button">Solve Sudoku</button>
     </div>
   </body>

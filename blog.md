@@ -12,11 +12,13 @@ Thats is able to _tile_ the whole infinite plane in a non periodic way:
 
 ![tilling](images/simple-tilling.png)
 
-The announcement was made in a [paper](https://arxiv.org/abs/2303.10798) but you miht have heard of it in any of your favorite channels like [veritasium](https://www.youtube.com/watch?v=48sCx-wBs34), [numberphile](https://www.youtube.com/watch?v=_ZS3Oqg1AX0), 
+The announcement was made in a [paper](https://arxiv.org/abs/2303.10798) but you might have heard of it in any of your favorite channels like [veritasium](https://www.youtube.com/watch?v=48sCx-wBs34), [numberphile](https://www.youtube.com/watch?v=_ZS3Oqg1AX0), 
 [quanta magazine](https://www.quantamagazine.org/hobbyist-finds-maths-elusive-einstein-tile-20230404/) or even the 
 [New York Times](https://www.nytimes.com/2023/03/28/science/mathematics-tiling-einstein.html).
 
-The story of non periodic tilings of the plane is somewhat old and was popularized by Sir Roger Penrose and Martin Gadner in his famous Scientific American column on recreational mathematics. For example Penrose found [two tiles](https://en.wikipedia.org/wiki/Penrose_tiling) (the dart and the kite) that were able to tile the plane in a non periodic way
+The story of non periodic tilings of the plane is somewhat old and was popularized by Sir Roger Penrose and Martin Gadner in his famous Scientific American column on recreational mathematics. For example Penrose found [two tiles](https://en.wikipedia.org/wiki/Penrose_tiling) (the dart and the kite) that were able to tile the plane in a non periodic way.
+
+In this blog post I will write a bit about these new tilings of the plane and how to cover finite regions using an algorithm that not many people, even please in the industry, know: a SAT solver.
 
 
 
@@ -58,7 +60,7 @@ Once you feed the solver an array of arrays it returns an array like [1, -2, 3, 
 
 ## A SAT Solver in wasm
 
-There are a million SAT solvers out there but we will use [splr](https://github.com/shnarazk/splr) that we can compile to WASM, fits in a  200kb and runs in the browser.
+There are a million SAT solvers out there but we will use [splr](https://github.com/shnarazk/splr) that we can compile to [WASM](https://github.com/nhatcher/splr-wasm), fits in a 200kb and runs in the [browser](https://www.nhatcher.com/hats/sat.html).
 
 Since we are communicating with wasm instead of passing an array of arrays to the solver we will pass just one array from which you can rebuild the array of arrays:
 
@@ -74,6 +76,30 @@ So, for instance the array of arrays:
     [3, -5, 89, 3]
 ]
 ```
+
+Will be converted to:
+```javascript
+const array = [3, 5, -4, 7, 4, 3, -5, 89, 3]
+```
+
+Once you have the array yo pass it to the splr solver by
+
+```javascript
+const result = JSON.parse(solveSat(array));
+```
+
+The `result` will either successful and contain a `data` array or fail and have a `details` message. If it succeeds the `result.data` will be an array with all the numbers of the variables being either positive (meaning they are true) or negative (meaning they are false).
+
+To sum up if you want to solve a problem in boolean logic you need:
+
+* Step 1: Convert the problem to a CNF
+* Step 2: Number all variables
+* Step 3: Create the array of array of clauses
+* Step 4: Convert them to a single array and feed it to `solveSat`
+* Step 5: Read the output from `result.data`
+* Step 6: Convert each of the indices to variables
+
+
 
 ## Intermezzo: Using a SAT solver to solve Sudokus
 
@@ -138,6 +164,10 @@ We immediately have a few statements:
 
 [-H(n, m, i), -H(n, m, j)]
 
+## It's turtles all the way down
+
+
+## The spectre
 
 
 

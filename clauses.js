@@ -35,8 +35,8 @@ const fromIndexToTile = (index) => {
 
 // There are 12 variables per node. So 12 x mMax x nMax variables
 const createClauses = (maxX, maxY, kinds) => {
-    mMax = maxX + 4;
-    nMax = maxY + 4;
+    mMax = maxX;
+    nMax = maxY;
     tileKinds = kinds;
     let clausesCount = 0;
     let data = [];

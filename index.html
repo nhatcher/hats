@@ -69,6 +69,8 @@
             grid.redraw();
         });
 
+        const offset = 3;
+
 
         async function solve() {
             await __wbg_init();
@@ -86,11 +88,11 @@
             if (document.getElementById("tiles-anti-turtle").checked) {
                 tileKinds.push(4);
             }
-            const {data, clausesCount} = createClauses(columnCount , rowCount, tileKinds);
+            const {data, clausesCount} = createClauses(columnCount + offset*2, rowCount + offset*2, tileKinds);
             addHatsToClauses(grid.tiles.map((h) => {
                 return {
-                    m: h.x+2,
-                    n: h.y+2,
+                    m: h.x + offset,
+                    n: h.y + offset,
                     kind: h.kind,
                     i: h.beta,
                 }
@@ -102,8 +104,8 @@
             if (ret.success) {
                 const r = ret.result.filter(i => i > 0);
                 const tiles = r.map(h => fromIndexToTile(h)).map( (h) => { return {
-                    x:h.m - 2,
-                    y:h.n - 2,
+                    x:h.m - offset,
+                    y:h.n - offset,
                     beta: h.i,
                     kind: h.kind,
                     isDragging: false,
