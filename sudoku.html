@@ -38,9 +38,21 @@
         background: #EEE;
         padding-left: 10px;
       }
+      #buttons {
+        display: flex;
+      }
       #solve-button {
-        width: 160px;
+        width: 140px;
         align-self: end;
+        border-radius: 5px;
+        background-color: #deb887;
+      }
+      #remove-all-button {
+        width: 140px;
+        border-radius: 5px;
+      }
+      #reset-button {
+        width: 140px;
         border-radius: 5px;
       }
 
@@ -91,17 +103,20 @@
         -moz-appearance: textfield;
         -webkit-appearance: textfield;
       }
+      .spacer {
+        flex-grow: 2;
+      }
       /* Chrome, Safari, Edge, Opera */
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
+      input::-webkit-outer-spin-button,
+      input::-webkit-inner-spin-button {
         -webkit-appearance: none;
         margin: 0;
-        }
+      }
 
         /* Firefox */
-        input[type=number] {
+      input[type=number] {
         -moz-appearance: textfield;
-        }
+      }
       
     </style>
     <script type="module">
@@ -113,7 +128,7 @@
         }
         init();
 
-        function main() {
+        function reset() {
             const valuesEasy = [
                 [0, 3, 0, 0, 7, 0, 0, 0, 0],
                 [0, 0, 0, 1, 0, 5, 0, 0, 0],
@@ -141,20 +156,22 @@
             for (let row=0; row<9; row++) {
                 for (let column=0; column<9; column++) {
                     const value = values[row][column];
-                    const cell = document.getElementById(`row-${row}-column-${column}`);
+                    const cellEl = document.getElementById(`row-${row}-column-${column}`);
+                    cellEl.style.color = "black";
                     if (value !== 0) {
-                      cell.value = value;
+                      cellEl.value = value;
                     } else {
-                      cell.value = '';
+                      cellEl.value = '';
                     }
                 }
             }
         }
-        function reset() {
+        function removeAll() {
           for (let row=0; row<9; row++) {
                 for (let column=0; column<9; column++) {
-                    const cell = document.getElementById(`row-${row}-column-${column}`);
-                    cell.value = '';
+                    const cellEl = document.getElementById(`row-${row}-column-${column}`);
+                    cellEl.style.color = "black";
+                    cellEl.value = '';
                 }
             }
         }
@@ -194,11 +211,13 @@
                 document.getElementById("info").innerText = `Failed: ${ret.details}`;
             }
         }
-        window.addEventListener('load', main);
+        window.addEventListener('load', reset);
         document.getElementById("solve-button").addEventListener('click', solve);
         document.getElementById("reset-button").addEventListener('click', reset);
+        document.getElementById("remove-all-button").addEventListener('click', removeAll);
     </script>
     <div id="wrapper">
+      <div>Sudoku solved by a SAT Solver</div>
       <div id="board">
         <div class="cell">
           <input type="number" id="row-0-column-0" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
@@ -526,8 +545,12 @@
 
       </div>
       <div id="info"></div>
-      <button type="button" id="reset-button">Reset</button>
-      <button type="button" id="solve-button">Solve Sudoku</button>
+      <div id="buttons">
+        <button type="button" id="remove-all-button">Remove All</button>
+        <button type="button" id="reset-button">Reset</button>
+        <div class="spacer"></div>
+        <button type="button" id="solve-button">Solve Sudoku</button>
+      </div>
     </div>
   </body>
 </html>
