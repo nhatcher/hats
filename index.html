@@ -28,7 +28,22 @@
             grid.onKeydown(event);
         });
 
-        canvas.addEventListener('mouseup', grid.redraw);
+        const redraw = (e) => {
+            const ratioAEl = document.getElementById('spectre-ratio-a');
+            const ratioBEl = document.getElementById('spectre-ratio-b');
+            if (!document.getElementById('draw-spectres').checked) {
+                ratioAEl.style.display = 'none';
+                ratioBEl.style.display = 'none';
+                grid.redraw(e);
+            } else {
+                ratioAEl.style.display = 'block';
+                ratioBEl.style.display = 'block';
+                grid.drawSpectres(ratioAEl.valueAsNumber, ratioBEl.valueAsNumber);
+            }
+        }
+
+
+        canvas.addEventListener('mouseup', redraw);
         canvas.focus();
 
         window.addEventListener('load', () => {
@@ -37,9 +52,9 @@
                 const data = JSON.parse(urlParams.get('data'));
                 const hats = data.hats.map(h=> {
                     return {
-                        x: h[0],
-                        y: h[1],
-                        beta: h[2],
+                        m: h[0],
+                        n: h[1],
+                        i: h[2],
                         sign: h[3],
                     }
                 });
@@ -56,17 +71,17 @@
                 // console.log(e);
             }
 
-            grid.redraw();
+            redraw();
         });
 
         document.addEventListener('change', (event) => {
-            grid.redraw();
+            redraw();
         })
 
         document.getElementById("column-count").addEventListener("change", () => {
             const columnCount = document.getElementById("column-count").valueAsNumber;
             grid.setColumnCount(columnCount);
-            grid.redraw();
+            redraw();
         });
 
         const offset = 3;
@@ -91,10 +106,10 @@
             const {data, clausesCount} = createClauses(columnCount + offset*2, rowCount + offset*2, tileKinds);
             addHatsToClauses(grid.tiles.map((h) => {
                 return {
-                    m: h.x + offset,
-                    n: h.y + offset,
+                    m: h.m + offset,
+                    n: h.n + offset,
                     kind: h.kind,
-                    i: h.beta,
+                    i: h.i,
                 }
             }), data);
             const t0 = performance.now();
@@ -104,15 +119,17 @@
             if (ret.success) {
                 const r = ret.result.filter(i => i > 0);
                 const tiles = r.map(h => fromIndexToTile(h)).map( (h) => { return {
-                    x:h.m - offset,
-                    y:h.n - offset,
-                    beta: h.i,
+                    m:h.m - offset,
+                    n:h.n - offset,
+                    i: h.i,
                     kind: h.kind,
                     isDragging: false,
                     isSelected: false,
-                };});
+                };}).filter(t => {
+                    return t.m > 0 && t.n > 0 && t.m < columnCount && t.n < rowCount;
+                });
                 grid.setTiles(tiles);
-                grid.redraw();
+                redraw();
                 infoBar.innerText = `Success! Solved in ${(t1-t0).toFixed(2)} milliseconds. ${tiles.length} tiles and ${clausesCount} clauses`;
             } else {
                 infoBar.innerText = `Failed: ${ret.details}`;
@@ -142,7 +159,7 @@
             const state = {
                 hatColors: grid.hatColors,
                 antiHatColors: grid.antiHatColors,
-                hats: grid.tiles.map((h)=>[h.x,h.y,h.beta,h.kind]),
+                hats: grid.tiles.map((h)=>[h.m,h.n,h.i,h.kind]),
             }
             const copyText = document.getElementById('hidden-input');
             const share = `${url}/?data=${encodeURIComponent(JSON.stringify(state))}`;
@@ -164,7 +181,12 @@
             <div><input type="checkbox" id="full-screen"/><label for="full-screen">Full screen</label></div>
             <div class="control-row"><input id="solve-button" type="button" value="Solve"/></div>
             <div class="control-row"><input id="share-button" type="button" value="Share"/></div>
-            <input id="hidden-input"/>
+
+            <div class="control-row"><input id="draw-spectres" type="checkbox"/>
+            <label for="draw-spectres">Draw Spectres</label></div>
+
+            <input type="range" value="0.5" min="0" max="2" step="0.01" id="spectre-ratio-a"/>
+            <input type="range" value="0.5" min="0" max="2" step="0.01" id="spectre-ratio-b"/>
 
             <div class="control-row"><input id="show-grid" type="checkbox" checked/>
             <label for="show-grid">Show grid</label></div>

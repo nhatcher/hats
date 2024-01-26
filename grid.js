@@ -1,4 +1,4 @@
-
+import decorateTilesWithVertices from './spectre.js';
 
 // enum Tiles {
 //     Hat=1,
@@ -27,7 +27,7 @@ class Grid {
 
         this.clickX = null;
         this.clickY = null;
-        this.tiles = [{ x: 6, y: 4, isDragging: false, beta: 0, isSelected: true, kind: 1 }];
+        this.tiles = [{ m: 6, n: 4, isDragging: false, i: 0, isSelected: true, kind: 1 }];
     }
 
     *selectedTiles() {
@@ -42,6 +42,7 @@ class Grid {
         console.assert(m % 2 === 1, "columnCount must be odd");
         this.columnCount = m;
         const scale = this.width / (3 * m);
+        this.scale = scale;
         this.a = scale;
         this.b = scale * Math.sqrt(3);
         this.rowCount = Math.ceil(this.height / this.b);
@@ -83,11 +84,11 @@ class Grid {
     rotate(alpha) {
         for (let tile of this.tiles) {
             if (tile.isSelected) {
-                let beta = (tile.beta + alpha) % 6;
+                let beta = (tile.i + alpha) % 6;
                 if (beta < 0) {
                     beta += 6;
                 }
-                tile.beta = beta;
+                tile.i = beta;
             }
         }
         this.redraw();
@@ -109,37 +110,37 @@ class Grid {
 
     moveLeft() {
         for (const tile of this.selectedTiles()) {
-            let x = tile.x - 1;
-            const y = tile.x % 2 === 0 ? tile.y + 1 : tile.y - 1;
+            let x = tile.m - 1;
+            const y = tile.m % 2 === 0 ? tile.n + 1 : tile.n - 1;
             if (x < -1) {
                 x = x % 2 === 0 ? this.columnCount + 1 : this.columnCount;
             }
-            tile.x = x;
-            tile.y = y;
+            tile.m = x;
+            tile.n = y;
         };
         this.redraw();
     }
 
     moveRight() {
         for (const tile of this.selectedTiles()) {
-            let x = tile.x + 1;
-            const y = tile.x % 2 === 0 ? tile.y + 1 : tile.y - 1;
+            let x = tile.m + 1;
+            const y = tile.m % 2 === 0 ? tile.n + 1 : tile.n - 1;
             if (x > this.columnCount + 1) {
                 x = x % 2 === 0 ? 0 : -1;
             }
-            tile.x = x;
-            tile.y = y;
+            tile.m = x;
+            tile.n = y;
         };
         this.redraw();
     }
 
     moveUp() {
         for (const tile of this.selectedTiles()) {
-            let y = tile.y - 2;
+            let y = tile.n - 2;
             if (y < -1) {
                 y = y % 2 === 0 ? this.rowCount + 1 : this.rowCount;
             }
-            tile.y = y;
+            tile.n = y;
         };
         this.redraw();
         this.redraw();
@@ -147,11 +148,11 @@ class Grid {
 
     moveDown() {
         for (const tile of this.selectedTiles()) {
-            let y = tile.y + 2;
+            let y = tile.n + 2;
             if (y > this.rowCount + 1) {
                 y = y % 2 === 0 ? 0 : -1;
             }
-            tile.y = y;
+            tile.n = y;
 
         }
         this.redraw();
@@ -307,7 +308,7 @@ class Grid {
             tile.isSelected = false;
         }
         this.tiles.push(
-            { x: 1, y: 1, isDragging: false, beta: 0, isSelected: true, kind: 1 }
+            { m: 1, n: 1, isDragging: false, i: 0, isSelected: true, kind: 1 }
         );
 
         this.redraw();
@@ -317,6 +318,8 @@ class Grid {
         const canvas = document.getElementById("canvas");
         const width = this.width;
         const height = this.height;
+        this.a = this.scale;
+        this.b = this.a * Math.sqrt(3);
         this.hatColors = [...document.querySelectorAll('.color.hat')].map(s => s.value);
         this.antiHatColors = [...document.querySelectorAll('.color.cher')].map(s => s.value);
         this.turtleColors = [...document.querySelectorAll('.color.turtle')].map(s => s.value);
@@ -353,31 +356,136 @@ class Grid {
         }
     }
 
+    drawSpectres = (ratioA, ratioB) => {
+        const canvas = document.getElementById("canvas");
+        const width = this.width;
+        const height = this.height;
+        this.a = this.scale * ratioA;
+        this.b = this.scale * ratioB;
+        this.hatColors = [...document.querySelectorAll('.color.hat')].map(s => s.value);
+        this.antiHatColors = [...document.querySelectorAll('.color.cher')].map(s => s.value);
+        this.turtleColors = [...document.querySelectorAll('.color.turtle')].map(s => s.value);
+        this.antiTurtleColors = [...document.querySelectorAll('.color.anti-turtle')].map(s => s.value);
+        canvas.width = width;
+        canvas.height = height;
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+
+        const vertexDict = decorateTilesWithVertices(this.tiles);
+        this.vertexDict = vertexDict;
+
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        this.ctx = ctx;
+        this.tiles.forEach(tile => tile.drawn = false);
+        const tile = this.tiles[0];
+        this.drawSpectresRecursively(tile, 0, tile.m * 3 * this.a, tile.n * this.b);
+    }
+
+    drawSpectresRecursively = (tile, startVertex, x, y) => {
+        // draws the tile starting at the vertex startVertex with coordinates (x, y)
+        // When it finds another vertex draws every other tile in that vertex first and then continues
+        tile.drawn = true;
+        const ctx = this.ctx;
+        const a = this.a;
+        const b = this.b;
+        const hatEdges = [
+            [90, b],       // 1
+            [0, a],        // 2
+            [60, a],       // 3
+            [-30, b],      // 4
+            [-90, b],      // 5
+            [0, a],        // 6
+            [-60, a],      // 7
+            [-150, b],     // 8
+            [-210, b],     // 9
+            [-120, a],     // 10
+            [-180, a],     // 11
+            [-180, a],     // 12
+            [-240, a],     // 13
+            [30, b]        // 14
+        ];
+
+        const turtleEdges = [
+            [90, b],       // 1
+            [0, a],        // 2
+            [-60, a],      // 3
+            [30, b],       // 4
+            [-30, b],      // 5
+            [-120, a],     // 6
+            [-180, a],     // 7
+            [-90, b],      // 8
+            [-150, b],     // 9
+            [-150, b],     // 10
+            [-210, b],     // 11
+            [60, a],       // 12
+            [120, a],      // 13
+            [30, b],       // 14
+        ];
+        const vertices = tile.vertices;
+        const l = vertices.length;
+        if (l !== vertices.length) {
+            throw Error(`Vertices number do not match ${l} !== ${vertices.length}`);
+        }
+        const sign = [1, 3].includes(tile.kind) ? 1 : -1;
+        const edges = [1, 2].includes(tile.kind) ? hatEdges : turtleEdges;
+        let beta = tile.i * Math.PI / 3;
+        if (tile.kind === 2) {
+            beta += Math.PI;
+        }
+        for (let v = 0; v < l; v++) {
+            const vertexIndex = (startVertex + v) % l;
+            const vertex = vertices[vertexIndex];
+            if (!(`${vertex.m}-${vertex.n}-${vertex.spot}` in this.vertexDict)) {
+                throw Error(`${vertex.m}-${vertex.n}-${vertex.spot} is not in dictionary`)
+            } else {
+                for (const pair of this.vertexDict[`${vertex.m}-${vertex.n}-${vertex.spot}`]) {
+                    const [newTileIndex, newVertexIndex] = pair;
+                    const newTile = this.tiles[newTileIndex];
+                    if (!newTile.drawn) {
+                        this.drawSpectresRecursively(newTile, newVertexIndex, x, y);
+                    }
+
+                }
+            }
+            const edge = edges[vertexIndex];
+            const [xn, yn] = this.turn([x, y], sign * edge[0] * Math.PI / 180 + beta, edge[1]);
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(xn, yn);
+            ctx.stroke();
+            ctx.fill();
+            x = xn;
+            y = yn;
+        }
+
+    }
+
     drawHat(tile, ctx) {
         const a = this.a;
         const b = this.b;
-        let x = tile.x * 3 * a;
-        let y = tile.y * b;
+        let x = tile.m * 3 * a;
+        let y = tile.n * b;
 
-        let beta = tile.beta * Math.PI / 3;
+        let beta = tile.i * Math.PI / 3;
         if (tile.kind === 2) {
             beta += Math.PI;
         }
 
         const hatEdges = [
-            [90, b],     // 2
-            [0, a],      // 3
-            [60, a],     // 4
-            [-30, b],    // 5
-            [-90, b],    // 6
-            [0, a],      // 7
-            [-60, a],    // 8
-            [-150, b],   // 9
-            [-210, b],   // 10
-            [-120, a],   // 11
+            [90, b],       // 2
+            [0, a],        // 3
+            [60, a],       // 4
+            [-30, b],      // 5
+            [-90, b],      // 6
+            [0, a],        // 7
+            [-60, a],      // 8
+            [-150, b],     // 9
+            [-210, b],     // 10
+            [-120, a],     // 11
             [-180, 2 * a], // 12
-            [-240, a],   // 13
-            [30, b]     // 14
+            [-240, a],     // 13
+            [30, b]        // 14
         ];
 
         const turtleEdges = [
@@ -400,8 +508,8 @@ class Grid {
 
         ctx.moveTo(x, y);
 
-        const sign = [1, 3].includes(tile.kind)? 1 : -1;
-        const edges = [1, 2].includes(tile.kind) ? hatEdges: turtleEdges;
+        const sign = [1, 3].includes(tile.kind) ? 1 : -1;
+        const edges = [1, 2].includes(tile.kind) ? hatEdges : turtleEdges;
         for (const edge of edges) {
             const [xn, yn] = this.turn([x, y], sign * edge[0] * Math.PI / 180 + beta, edge[1]);
             ctx.lineTo(xn, yn);
@@ -418,16 +526,16 @@ class Grid {
 
         switch (tile.kind) {
             case 1:
-                ctx.fillStyle = this.hatColors[tile.beta];
+                ctx.fillStyle = this.hatColors[tile.i];
                 break;
             case 2:
-                ctx.fillStyle = this.antiHatColors[tile.beta];
+                ctx.fillStyle = this.antiHatColors[tile.i];
                 break;
             case 3:
-                ctx.fillStyle = this.turtleColors[tile.beta];
+                ctx.fillStyle = this.turtleColors[tile.i];
                 break;
             case 4:
-                ctx.fillStyle = this.antiTurtleColors[tile.beta];
+                ctx.fillStyle = this.antiTurtleColors[tile.i];
                 break;
             default:
                 throw new Error(`Invalid kind: ${tile.kind}`);
