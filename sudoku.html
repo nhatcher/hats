@@ -129,20 +129,9 @@
         init();
 
         function reset() {
-            const valuesEasy = [
-                [0, 3, 0, 0, 7, 0, 0, 0, 0],
-                [0, 0, 0, 1, 0, 5, 0, 0, 0],
-                [0, 9, 8, 0, 0, 0, 0, 6, 0],
-                [8, 0, 0, 0, 6, 0, 0, 0, 3],
-                [4, 0, 0, 0, 0, 3, 0, 0, 1],
-                [0, 0, 0, 0, 2, 0, 0, 0, 0],
-                [0, 6, 0, 0, 0, 0, 2, 8, 0],
-                [0, 0, 0, 4, 0, 9, 0, 0, 5],
-                [0, 0, 0, 0, 0, 0, 0, 7, 0],
-            ];
             // taken from:
             // https://users.aalto.fi/~tjunttil/2020-DP-AUT/notes-sat/solving.html
-            const values = [
+            const valuesDifficult = [
                 [0, 0, 0, 0, 0, 0, 0, 1, 0],
                 [4, 0, 0, 0, 0, 0, 0, 0, 0],
                 [0, 2, 0, 0, 0, 0, 0, 0, 0],
@@ -153,11 +142,24 @@
                 [0, 5, 0, 1, 0, 0, 0, 0, 0],
                 [0, 0, 0, 8, 0, 6, 0, 0, 0],
             ];
+
+            const values = [
+                [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 2, 3, 0, 0, 0, 7, 8, 0],
+                [1, 0, 0, 4, 0, 6, 0, 0, 9],
+                [4, 0, 0, 0, 5, 0, 0, 0, 1],
+                [9, 0, 0, 0, 0, 0, 0, 0, 6],
+                [0, 6, 0, 0, 0, 0, 0, 9, 0],
+                [0, 0, 5, 0, 0, 0, 8, 0, 0],
+                [0, 0, 0, 3, 0, 1, 0, 0, 0],
+                [0, 0, 0, 0, 9, 0, 0, 0, 0],
+            ];
+
             for (let row=0; row<9; row++) {
                 for (let column=0; column<9; column++) {
                     const value = values[row][column];
                     const cellEl = document.getElementById(`row-${row}-column-${column}`);
-                    cellEl.style.color = "black";
+                    cellEl.style.color = "red";
                     if (value !== 0) {
                       cellEl.value = value;
                     } else {
@@ -170,7 +172,7 @@
           for (let row=0; row<9; row++) {
                 for (let column=0; column<9; column++) {
                     const cellEl = document.getElementById(`row-${row}-column-${column}`);
-                    cellEl.style.color = "black";
+                    cellEl.style.color = "red";
                     cellEl.value = '';
                 }
             }
@@ -178,6 +180,7 @@
         function solve() {
             const values = [];
             const data = createClauses();
+            console.log(data);
             for (let row=0; row<9; row++) {
                 const rowValue = [];
                 for (let column=0; column<9; column++) {
@@ -206,7 +209,7 @@
                     cellEl.value = n;
 
                 }
-                document.getElementById("info").innerText = `Success. Solved in ${(t1-t0)} milliseconds`;
+                document.getElementById("info").innerText = `Success. Solved in ${(t1-t0).toFixed(2)} milliseconds`;
             } else {
                 document.getElementById("info").innerText = `Failed: ${ret.details}`;
             }
@@ -217,7 +220,7 @@
         document.getElementById("remove-all-button").addEventListener('click', removeAll);
     </script>
     <div id="wrapper">
-      <div>Sudoku solved by a SAT Solver</div>
+      <div id="title">Sudoku solved by a SAT Solver</div>
       <div id="board">
         <div class="cell">
           <input type="number" id="row-0-column-0" value="" min="1" max="9" pattern="[1-9]" inputmode="numeric">
