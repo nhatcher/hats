@@ -8,14 +8,36 @@
     <link rel="stylesheet" href="vendor/coloris.min.css"/>
     <script src="vendor/coloris.min.js"></script>
     <script type="module">
-        import __wbg_init, {solveSat} from './pkg/splr_wasm.js';
         import createClauses, {fromIndexToTile, addHatsToClauses} from './clauses.js';
         import Grid from './grid.js';
 
-        async function init() {
-            await __wbg_init();
+        const offset = 3;
+
+        const myWorker = new Worker("worker.js", {type:'module'});
+
+        myWorker.onmessage = (e) => {
+            document.getElementById('solving-dialog').close();
+            const {columnCount, rowCount} = grid.getDimensions();
+            const ret = e.data;
+            if (ret.success) {
+                const r = ret.result.filter(i => i > 0);
+                const tiles = r.map(h => fromIndexToTile(h)).map( (h) => { return {
+                    m:h.m - offset,
+                    n:h.n - offset,
+                    i: h.i,
+                    kind: h.kind,
+                    isDragging: false,
+                    isSelected: false,
+                };}).filter(t => {
+                    return t.m > 0 && t.n > 0 && t.m < columnCount && t.n < rowCount;
+                });
+                grid.setTiles(tiles);
+                redrawCanvas();
+                infoDetails.innerText = `Success! Solved in ${(ret.time).toFixed(2)} milliseconds. ${tiles.length} tiles and ${ret.clausesCount} clauses`;
+            } else {
+                infoDetails.innerText = `Failed: ${ret.details}`;
+            }
         }
-        init();
 
         function updateInfo() {
             const selectedTiles = grid.getSelectedTiles();
@@ -74,7 +96,6 @@
 
         function solve() {
             const {columnCount, rowCount} = grid.getDimensions();
-            const offset = 3;
             const tileKinds = [];
             if (document.getElementById("tiles-hat").checked) {
                 tileKinds.push(1);
@@ -99,28 +120,8 @@
                 }
             }), data);
             infoDetails.innerText = `${clausesCount} clauses created. Solving`;
-            const t0 = performance.now();
-            const x = solveSat(data);
-            const t1 = performance.now();
-            const ret = JSON.parse(x);
-            if (ret.success) {
-                const r = ret.result.filter(i => i > 0);
-                const tiles = r.map(h => fromIndexToTile(h)).map( (h) => { return {
-                    m:h.m - offset,
-                    n:h.n - offset,
-                    i: h.i,
-                    kind: h.kind,
-                    isDragging: false,
-                    isSelected: false,
-                };}).filter(t => {
-                    return t.m > 0 && t.n > 0 && t.m < columnCount && t.n < rowCount;
-                });
-                grid.setTiles(tiles);
-                redrawCanvas();
-                infoDetails.innerText = `Success! Solved in ${(t1-t0).toFixed(2)} milliseconds. ${tiles.length} tiles and ${clausesCount} clauses`;
-            } else {
-                infoDetails.innerText = `Failed: ${ret.details}`;
-            }
+            document.getElementById('solving-dialog').showModal();
+            myWorker.postMessage([data, clausesCount]);
         }
         
         document.getElementById('solve-button').addEventListener('click', solve);
@@ -337,6 +338,7 @@
         
         <input type="button" id="close-controls" value="Close"/>
     </dialog>
+    <dialog id="solving-dialog"><div>Please wait</div></dialog>
 </div>
 </body>
 </html>
