@@ -33,8 +33,36 @@ const fromIndexToTile = (index) => {
     };
 }
 
+// https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+const shuffle = (array) => {
+    let currentIndex = array.length, randomIndex;
+
+    // While there remain elements to shuffle.
+    while (currentIndex > 0) {
+
+        // Pick a remaining element.
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+
+        // And swap it with the current element.
+        [array[currentIndex], array[randomIndex]] = [
+            array[randomIndex], array[currentIndex]];
+    }
+
+    return array;
+}
+
+const flatData = (data) => {
+    const newArray = [];
+    for (let l = 0; l < data.length; l++) {
+        const v = data[l];
+        newArray.push(v.length, ...v);
+    }
+    return newArray;
+}
+
 // There are 12 variables per node. So 12 x mMax x nMax variables
-const createClauses = (maxX, maxY, kinds) => {
+const createClauses = (maxX, maxY, kinds, randomize) => {
     mMax = maxX;
     nMax = maxY;
     tileKinds = kinds;
@@ -59,7 +87,7 @@ const createClauses = (maxX, maxY, kinds) => {
                             }
                             const index2 = fromTileToIndex({ m, n, i: j, kind: kind2 });
                             // add statement [-index1, -index2]
-                            data.push(2, -index1, -index2);
+                            data.push([-index1, -index2]);
                             clausesCount++;
                         }
                     }
@@ -81,7 +109,7 @@ const createClauses = (maxX, maxY, kinds) => {
                                 if (tilesCollide(tile1, tile2)) {
                                     const index2 = fromTileToIndex(tile2);
                                     // add statement [-index1, -index2]
-                                    data.push(2, -index1, -index2);
+                                    data.push([-index1, -index2]);
                                     clausesCount++
                                 }
                             }
@@ -115,12 +143,15 @@ const createClauses = (maxX, maxY, kinds) => {
                 }
                 // add statement indices
                 console.assert(indices.length > 0);
-                data.push(indices.length, ...indices);
+                data.push(indices);
                 clausesCount++;
             }
         }
     }
-    return {data, clausesCount};
+    if (randomize) {
+        shuffle(data);
+    }
+    return { data: flatData(data), clausesCount };
 }
 
 const addHatsToClauses = (tiles, data) => {

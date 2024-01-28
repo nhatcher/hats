@@ -93,8 +93,8 @@
             redrawCanvas();
         });
 
-
         function solve() {
+            const randomize = document.getElementById("randomize").checked;
             const {columnCount, rowCount} = grid.getDimensions();
             const tileKinds = [];
             if (document.getElementById("tiles-hat").checked) {
@@ -110,7 +110,7 @@
                 tileKinds.push(4);
             }
             infoDetails.innerText = 'Creating clauses';
-            const {data, clausesCount} = createClauses(columnCount + offset*2, rowCount + offset*2, tileKinds);
+            const {data, clausesCount} = createClauses(columnCount + offset*2, rowCount + offset*2, tileKinds, randomize);
             addHatsToClauses(grid.tiles.map((h) => {
                 return {
                     m: h.m + offset,
@@ -248,6 +248,8 @@
     </div>
     <dialog id="grid-options">
         <div class="control-row"><span>Columns</span><input type="number" id="column-count" value="15" step="2"></div>
+        <div class="control-row"><input id="randomize" type="checkbox"/>
+            <label for="randomize">Randomize</label></div>
         <div class="control-row"><input id="draw-spectres" type="checkbox"/>
         <label for="draw-spectres">Draw Spectres</label></div>
 

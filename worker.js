@@ -7,7 +7,6 @@ async function init() {
 init();
 
 onmessage = (e) => {
-    console.log("Message received from main script");
     const data = e.data[0];
     const clausesCount = e.data[1];
     const t0 = performance.now();

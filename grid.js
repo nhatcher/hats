@@ -391,7 +391,7 @@ class Grid {
         this.drawSpectresRecursively(tile, 0, tile.m * 3 * this.a, tile.n * this.b);
     }
 
-    drawSpectresRecursively = (tile, startVertex, x, y) => {
+    drawSpectresRecursively = (tile, startVertex, x0, y0) => {
         // draws the tile starting at the vertex startVertex with coordinates (x, y)
         // When it finds another vertex draws every other tile in that vertex first and then continues
         tile.drawn = true;
@@ -442,6 +442,9 @@ class Grid {
         if (tile.kind === 2) {
             beta += Math.PI;
         }
+        let coordinates = [];
+        let x = x0;
+        let y = y0;
         for (let v = 0; v < l; v++) {
             const vertexIndex = (startVertex + v) % l;
             const vertex = vertices[vertexIndex];
@@ -459,15 +462,34 @@ class Grid {
             }
             const edge = edges[vertexIndex];
             const [xn, yn] = this.turn([x, y], sign * edge[0] * Math.PI / 180 + beta, edge[1]);
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(xn, yn);
-            ctx.stroke();
-            ctx.fill();
+            coordinates.push([xn, yn]);
             x = xn;
             y = yn;
         }
-
+        ctx.beginPath();
+        ctx.moveTo(x0, y0);
+        for (const coordinate of coordinates) {
+            const [xn, yn] = coordinate;
+            ctx.lineTo(xn, yn);
+            switch (tile.kind) {
+                case 1:
+                    ctx.fillStyle = this.hatColors[tile.i];
+                    break;
+                case 2:
+                    ctx.fillStyle = this.antiHatColors[tile.i];
+                    break;
+                case 3:
+                    ctx.fillStyle = this.turtleColors[tile.i];
+                    break;
+                case 4:
+                    ctx.fillStyle = this.antiTurtleColors[tile.i];
+                    break;
+                default:
+                    throw new Error(`Invalid kind: ${tile.kind}`);
+            }
+        }
+        ctx.stroke();
+        ctx.fill();
     }
 
     drawHat(tile, ctx) {
