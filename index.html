@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hats and SAT Solvers</title>
-    <link href="style.css" rel="stylesheet" />
+    <link href="style.css?version=0.1" rel="stylesheet" />
     <link rel="stylesheet" href="vendor/coloris.min.css"/>
     <script src="vendor/coloris.min.js"></script>
     <script type="module">
@@ -12,23 +12,37 @@
         import createClauses, {fromIndexToTile, addHatsToClauses} from './clauses.js';
         import Grid from './grid.js';
 
-        const grid = new Grid(800, 400, 15, 13);
+        async function init() {
+            await __wbg_init();
+        }
+        init();
+
+        function updateInfo() {
+            const selectedTiles = grid.getSelectedTiles();
+            if (selectedTiles.length > 1) {
+                infoDetails.innerText = `${selectedTiles.length} selected`
+            } else if (selectedTiles.length === 1) {
+                const tile = selectedTiles[0];
+                const kind = {
+                    1: 'Hat',
+                    2: 'anti-Hat',
+                    3: 'Turtle',
+                    4: 'anti-Turtle'
+                }[tile.kind];
+                infoDetails.innerText = `Selected tile: ${kind} in vertex (${tile.m}, ${tile.n}) and rotation ${tile.i*60} degrees`
+            }
+        }
+
         const canvas = document.getElementById('canvas');
-        const infoBar = document.getElementById('info');
-        infoBar.style.width = "800px";
+        const grid = new Grid(window.innerWidth, window.innerHeight - 60, 15);
+        const infoDetails = document.getElementById('info-details');
 
         canvas.addEventListener('keydown', (event) => {
-            if (event.code === 'Escape' && document.getElementById('full-screen').checked) {
-                // Exit full screen
-                document.getElementById('full-screen').checked = false;
-                grid.setDimensions(800, 400);
-                document.querySelectorAll('.extras').forEach(el => el.style.display = "block");
-                infoBar.style.width = "800px";
-            }
             grid.onKeydown(event);
+            updateInfo();
         });
 
-        const redraw = (e) => {
+        const redrawCanvas = (e) => {
             const ratioAEl = document.getElementById('spectre-ratio-a');
             const ratioBEl = document.getElementById('spectre-ratio-b');
             if (!document.getElementById('draw-spectres').checked) {
@@ -40,56 +54,27 @@
                 ratioBEl.style.display = 'block';
                 grid.drawSpectres(ratioAEl.valueAsNumber, ratioBEl.valueAsNumber);
             }
+            updateInfo();
         }
 
 
-        canvas.addEventListener('mouseup', redraw);
+        canvas.addEventListener('mouseup', redrawCanvas);
         canvas.focus();
 
-        window.addEventListener('load', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            try { 
-                const data = JSON.parse(urlParams.get('data'));
-                const hats = data.hats.map(h=> {
-                    return {
-                        m: h[0],
-                        n: h[1],
-                        i: h[2],
-                        sign: h[3],
-                    }
-                });
-                grid.setTiles(hats);
-                document.querySelectorAll('.color.hat').forEach( (s, i) => {
-                    s.value = data.hatColors[i];
-                    s.dispatchEvent(new Event('input', { bubbles: true }));
-                });
-                document.querySelectorAll('.color.cher').forEach( (s, i) => {
-                    s.value = data.antiHatColors[i];
-                    s.dispatchEvent(new Event('input', { bubbles: true }));
-                });
-            } catch(e) {
-                // console.log(e);
-            }
-
-            redraw();
-        });
-
         document.addEventListener('change', (event) => {
-            redraw();
+            redrawCanvas();
         })
 
         document.getElementById("column-count").addEventListener("change", () => {
             const columnCount = document.getElementById("column-count").valueAsNumber;
             grid.setColumnCount(columnCount);
-            redraw();
+            redrawCanvas();
         });
 
-        const offset = 3;
 
-
-        async function solve() {
-            await __wbg_init();
+        function solve() {
             const {columnCount, rowCount} = grid.getDimensions();
+            const offset = 3;
             const tileKinds = [];
             if (document.getElementById("tiles-hat").checked) {
                 tileKinds.push(1);
@@ -103,6 +88,7 @@
             if (document.getElementById("tiles-anti-turtle").checked) {
                 tileKinds.push(4);
             }
+            infoDetails.innerText = 'Creating clauses';
             const {data, clausesCount} = createClauses(columnCount + offset*2, rowCount + offset*2, tileKinds);
             addHatsToClauses(grid.tiles.map((h) => {
                 return {
@@ -112,6 +98,7 @@
                     i: h.i,
                 }
             }), data);
+            infoDetails.innerText = `${clausesCount} clauses created. Solving`;
             const t0 = performance.now();
             const x = solveSat(data);
             const t1 = performance.now();
@@ -129,71 +116,164 @@
                     return t.m > 0 && t.n > 0 && t.m < columnCount && t.n < rowCount;
                 });
                 grid.setTiles(tiles);
-                redraw();
-                infoBar.innerText = `Success! Solved in ${(t1-t0).toFixed(2)} milliseconds. ${tiles.length} tiles and ${clausesCount} clauses`;
+                redrawCanvas();
+                infoDetails.innerText = `Success! Solved in ${(t1-t0).toFixed(2)} milliseconds. ${tiles.length} tiles and ${clausesCount} clauses`;
             } else {
-                infoBar.innerText = `Failed: ${ret.details}`;
+                infoDetails.innerText = `Failed: ${ret.details}`;
             }
         }
+        
         document.getElementById('solve-button').addEventListener('click', solve);
-        document.getElementById('full-screen').addEventListener('change', (event) => {
-            if (event.target.checked) {
-                grid.setDimensions(window.innerWidth, window.innerHeight - 35);
-                document.querySelectorAll('.extras').forEach(el => el.style.display = "none");
-            }
-            canvas.focus();
+        
+        const helpDialog = document.getElementById('help-dialog');
+        document.getElementById('close-help-dialog-button').addEventListener('click', () => {
+            helpDialog.close();
         });
-        window.addEventListener('resize', (event) => {
-            if (document.getElementById('full-screen').checked) {
-                grid.setDimensions(window.innerWidth, window.innerHeight - 35);
-                document.querySelectorAll('.extras').forEach(el => el.style.display = "none");
-                infoBar.style.top = `${window.innerHeight-35}px`;
-                infoBar.style.width = `${window.innerWidth}px`;
-            }
+        document.getElementById('show-help').addEventListener('click', () => {
+            helpDialog.showModal();
         });
 
-        const share_button = document.getElementById('share-button');
-        share_button.addEventListener("click", function () {
-            const href = window.location.href;
-            const url = href.slice(0, href.lastIndexOf('/'));
-            const state = {
-                hatColors: grid.hatColors,
-                antiHatColors: grid.antiHatColors,
-                hats: grid.tiles.map((h)=>[h.m,h.n,h.i,h.kind]),
-            }
-            const copyText = document.getElementById('hidden-input');
-            const share = `${url}/?data=${encodeURIComponent(JSON.stringify(state))}`;
-            copyText.value = share;
-            copyText.select();
-            document.execCommand('copy');
-            alert('URL copied to your clipboard');
+        const tilesDialog = document.getElementById('tiles-and-colors');
+        document.getElementById('close-tiles-and-colors-button').addEventListener('click', () => {
+            tilesDialog.close();
         });
+        document.getElementById('show-tiles-and-colors').addEventListener('click', () => {
+            tilesDialog.showModal();
+        });
+
+        const controlsDialog = document.getElementById('controls');
+        document.getElementById('close-controls').addEventListener('click', () => {
+            controlsDialog.close();
+        });
+        document.getElementById('show-controls').addEventListener('click', () => {
+            controlsDialog.showModal();
+        });
+
+        const gridOptionsDialog = document.getElementById('grid-options');
+        document.getElementById('close-grid-options').addEventListener('click', () => {
+            gridOptionsDialog.close();
+        });
+        document.getElementById('show-grid-options').addEventListener('click', () => {
+            gridOptionsDialog.showModal();
+        });
+
+        /// On Screen Controls
+        document.getElementById('controls-add-tile').addEventListener('click', () => {
+            grid.onKeydown({
+                code: 'KeyA',
+                stopPropagation: () => {},
+                preventDefault: () => {}
+            });
+        });
+
+        document.getElementById('controls-delete-tiles').addEventListener('click', () => {
+            grid.onKeydown({
+                code: 'Delete',
+                stopPropagation: () => {},
+                preventDefault: () => {}
+            });
+        });
+
+        document.getElementById('controls-cycle-tiles').addEventListener('click', () => {
+            grid.onKeydown({
+                code: 'Space',
+                stopPropagation: () => {},
+                preventDefault: () => {}
+            });
+        });
+
+        document.getElementById('controls-move-left').addEventListener('click', () => {
+            grid.onKeydown({
+                code: 'ArrowLeft',
+                stopPropagation: () => {},
+                preventDefault: () => {}
+            });
+        });
+
+        document.getElementById('controls-move-right').addEventListener('click', () => {
+            grid.onKeydown({
+                code: 'ArrowRight',
+                stopPropagation: () => {},
+                preventDefault: () => {}
+            });
+        });
+
+        document.getElementById('controls-move-up').addEventListener('click', () => {
+            grid.onKeydown({
+                code: 'ArrowUp',
+                stopPropagation: () => {},
+                preventDefault: () => {}
+            });
+        });
+
+        document.getElementById('controls-move-down').addEventListener('click', () => {
+            grid.onKeydown({
+                code: 'ArrowDown',
+                stopPropagation: () => {},
+                preventDefault: () => {}
+            });
+        });
+
+        document.getElementById('controls-rotate-tiles').addEventListener('click', () => {
+            grid.onKeydown({
+                code: 'KeyR',
+                stopPropagation: () => {},
+                preventDefault: () => {}
+            });
+        });
+
+
+        window.addEventListener('resize', (event) => {
+            grid.setDimensions(window.innerWidth, window.innerHeight - 60);
+            updateInfo();
+        });
+
+        window.addEventListener('load', redrawCanvas);
     </script>
 </head>
 <body>
+    <div id="toolbar">
+        <div class="button" id="show-tiles-and-colors">Tiles</div>
+        <div class="button" id="show-grid-options">Grid</div>
+        <div class="button" id="show-controls">Controls</div>
+        <div class="button" id="solve-button">Solve</div></div>
     <canvas id="canvas" tabindex="0"></canvas>
-    <div id="info"></div>
-    <div id="more-button"><input type="button" value="more"/></div>
-    <div id="panels">
-        <div id="controls" class="extras">
-            <div class="control-row"><span>Columns</span><input type="number" id="column-count" value="15" step="2"></div>
+    <div id="info">
+        <div id="info-details"></div>
+        <span id="show-help">Help</span>
+        <a id="github-logo" href="https://github.com/nhatcher/hats">
+            <img src="vendor/github-mark.svg">
+        </a>
+    </div>
+    <dialog id="grid-options">
+        <div class="control-row"><span>Columns</span><input type="number" id="column-count" value="15" step="2"></div>
+        <div class="control-row"><input id="draw-spectres" type="checkbox"/>
+        <label for="draw-spectres">Draw Spectres</label></div>
 
-            <div><input type="checkbox" id="full-screen"/><label for="full-screen">Full screen</label></div>
-            <div class="control-row"><input id="solve-button" type="button" value="Solve"/></div>
-            <div class="control-row"><input id="share-button" type="button" value="Share"/></div>
+        <input type="range" value="0.5" min="0" max="2" step="0.01" id="spectre-ratio-a"/>
+        <input type="range" value="0.5" min="0" max="2" step="0.01" id="spectre-ratio-b"/>
 
-            <div class="control-row"><input id="draw-spectres" type="checkbox"/>
-            <label for="draw-spectres">Draw Spectres</label></div>
+        <div class="control-row"><input id="show-grid" type="checkbox" checked/>
+        <label for="show-grid">Show grid</label></div>
 
-            <input type="range" value="0.5" min="0" max="2" step="0.01" id="spectre-ratio-a"/>
-            <input type="range" value="0.5" min="0" max="2" step="0.01" id="spectre-ratio-b"/>
-
-            <div class="control-row"><input id="show-grid" type="checkbox" checked/>
-            <label for="show-grid">Show grid</label></div>
-
-            <!-- <input id="show-vertices" type="checkbox" checked/>
-            <label for="show-certices">Show vertices</label> -->
-        </div>
+        <input id="close-grid-options" type="button" value="Close"/>
+    </dialog>
+    <dialog id="help-dialog">
+        <div>Instructions</div>
+        <ul>
+            <li><span class="key">R</span> to rotate selected tiles (<span class="key">Shift</span>+<span class="key">R</span> to rotate the other way)</li>
+            <li><span class="key">A</span> to add a new tile</li>
+            <li><span class="key">Space</span> to cycle throw the different tiles</li>
+            <li>Arrow keys to navigate the selected tiles around the grid</li>
+            <li><span class="key">Delete</span> to delete selected tiles</li>
+            <li>Click on a tile to select it (<span class="key">Shift</span>+Click adds to selection)</li>
+            <li><span class="key">Ctrl+A</span> to select all tiles</li>
+            <!-- <li><span class="key">Esc</span> escapes full screen</li> -->
+        </ul>
+        <div>Once ready you can click Solve to use a SAT solver. That will find hats that fill the current area. Note that there might be issues at the borders</div>
+        <input id="close-help-dialog-button" type="button" value="Close"/>
+    </dialog>
+    <dialog id="tiles-and-colors">
         <div id="color-scheme" class="extras">
             <div>
                 <span>Hat Colors:</span>
@@ -240,22 +320,23 @@
             <div class="control-row"><input id="tiles-anti-turtle" type="checkbox"/>
             <label for="tiles-anit-turtle">Anti turtle</label></div>
         </div>
-        <div id="instructions" class="extras">
-            <div>Instructions</div>
-            <div>
-            <ul>
-                <li><span class="key">R</span> to rotate selected tiles (<span class="key">Shift</span>+<span class="key">R</span> to rotate the other way)</li>
-                <li><span class="key">A</span> to add a new tile</li>
-                <li><span class="key">Space</span> to cycle throw the different tiles</li>
-                <li>Arrow keys to navigate the selected tiles around the grid</li>
-                <li><span class="key">Delete</span> to delete selected tiles</li>
-                <li>Click on a tile to select it (<span class="key">Shift</span>+Click adds to selection)</li>
-                <li><span class="key">Ctrl+A</span> to select all tiles</li>
-                <li><span class="key">Esc</span> escapes full screen</li>
-            </ul>
-            <div>Once ready you can click Solve to use a SAT solver. That will find hats that fill the current area. Note that there might be issues at the borders</div>
-        </div>
-    </div>
+        <input id="close-tiles-and-colors-button" type="button" value="Close "/>
+    </dialog>
+    <dialog id="controls">
+        <div id="controls-add-tile">+</div>
+        <div id="controls-delete-tiles">Del</div>
+        <div id="controls-cycle-tiles">Cycle</div>
+        <div id="controls-rotate-tiles">Rotate</div>
+
+        <div id="controls-move-left">Left</div>
+        <div id="controls-move-right">Right</div>
+
+
+        <div id="controls-move-up">Up</div>
+        <div id="controls-move-down">Down</div>
+        
+        <input type="button" id="close-controls" value="Close"/>
+    </dialog>
 </div>
 </body>
 </html>

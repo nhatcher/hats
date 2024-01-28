@@ -1,44 +1,82 @@
 body {
     margin: 0px;
-    /* overflow: hidden; */
+    overflow: hidden;
+}
+
+#toolbar {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    height: 30px;
+    line-height: 30px;
+    background-color: #EEE;
+    display: flex;
+    flex-direction: row;
+    right: 0px;
+}
+
+#toolbar .button {
+    padding-left: 5px;
+    padding-right: 5px;
+    cursor: pointer;
+}
+
+#toolbar .button:hover {
+    text-decoration: underline;
 }
 
 #canvas {
-    position: relative;
+    position: absolute;
     left: 0px;
-    top: 0px;
+    top: 30px;
+    right: 0px;
+    bottom: 30px;
     border: 0px solid #333;
 }
 
 #info {
-    position: relative;
+    position: absolute;
     left: 0px;
     height: 30px;
+    line-height: 30px;
+    bottom: 0px;
+    width: 100%;
     background-color: #EEE;
+    display: flex;  
+}
+
+#info-details {
+    flex-grow: 2;
+}
+
+#github-logo img {
+    height: 20px;
+    padding: 5px;
 }
 
 #canvas:focus-visible {
     outline: none;
 }
+
 #controls {
-    /* position: absolute; */
-    /* top: 0px; */
-    /* left: 850px; */
-    display: flex;
-    flex-direction: column;
+    top: 30px;
+    margin: 0px;
+    width: 300px;
+    border: 1px solid #EEE;
+    border-radius: 5px;
+    box-sizing: border-box;
+    background-color: #9ea3a838;
+    left: calc(100vw - 304px);
+}
+
+#panels {
+    display: none;
 }
 
 li {
     padding: 6px 0px;
 }
 
-#more-button {
-    position: absolute;
-    left: 10px;
-    right: 10px;
-    display: none;
-    z-index: -10;
-}
 
 .key {
     border: 1px solid #EEE;
@@ -54,6 +92,65 @@ li {
     /* display: none; */
 }
 
-  .color {
+.color {
     width: 20px;
-  }
+}
+
+#instructions {
+    /* display: none;
+    position:absolute;
+    left: 20px;
+    top: 20px;
+    width: 80%;
+    height: 80%;
+    padding: 20px;
+    border: 1px solid #EEE;
+    border-radius: 5px;
+    background-color: #f0ffebeb; */
+}
+
+#close-instructions-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+}
+
+#tiles-and-colors {
+    /* display: none;
+    position:absolute;
+    left: 20px;
+    top: 20px;
+    width: 80%;
+    height: 80%;
+    padding: 20px;
+    border: 1px solid #EEE;
+    border-radius: 5px;
+    background-color: #f0ffebeb;
+} */
+}
+
+#controls {
+    /* display: none;
+    position:absolute;
+    left: 20px;
+    top: 20px;
+    width: 80%;
+    height: 80%;
+    padding: 20px;
+    border: 1px solid #EEE;
+    border-radius: 5px;
+    background-color: #f0ffebeb;  */
+}
+
+#grid-options {
+    /* display: none;
+    position:absolute;
+    left: 20px;
+    top: 20px;
+    width: 80%;
+    height: 80%;
+    padding: 20px;
+    border: 1px solid #EEE;
+    border-radius: 5px;
+    background-color: #f0ffebeb;  */
+}

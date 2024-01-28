@@ -67,13 +67,22 @@ class Grid {
         this.width = w;
         this.height = h;
         const scale = this.width / (3 * this.columnCount);
+        this.scale = scale;
         this.a = scale;
         this.b = scale * Math.sqrt(3);
+        this.rowCount = Math.ceil(this.height / this.b);
+        if (this.rowCount % 2 === 0) {
+            this.rowCount += 1;
+        }
         this.redraw();
     }
 
     setTiles = (h) => {
         this.tiles = h;
+    }
+
+    getSelectedTiles = () => {
+        return this.tiles.filter( t => t.isSelected);
     }
 
     turn(point, alpha, l) {
