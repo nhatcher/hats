@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hats and SAT Solvers</title>
-    <link href="style.css?version=0.1.2" rel="stylesheet" >
+    <link href="style.css?version=0.1.3" rel="stylesheet" >
     <link rel="stylesheet" href="vendor/coloris.min.css">
     <script src="vendor/coloris.min.js"></script>
     <script type="module">
@@ -13,9 +13,9 @@
 
         const offset = 3;
 
-        const myWorker = new Worker("worker.js", {type:'module'});
+        const webWorker = new Worker("worker.js", {type:'module'});
 
-        myWorker.onmessage = (e) => {
+        webWorker.onmessage = (e) => {
             document.getElementById('solving-dialog').close();
             const {columnCount, rowCount} = grid.getDimensions();
             const ret = e.data;
@@ -121,7 +121,7 @@
             }), data);
             infoDetails.innerText = `${clausesCount} clauses created. Solving`;
             document.getElementById('solving-dialog').showModal();
-            myWorker.postMessage([data, clausesCount]);
+            webWorker.postMessage([data, clausesCount]);
         }
         
         const helpDialog = document.getElementById('help-dialog');
@@ -166,71 +166,21 @@
         });
 
         /// On Screen Controls
-        document.getElementById('controls-add-tile').addEventListener('click', () => {
-            grid.onKeydown({
-                code: 'KeyA',
-                stopPropagation: () => {},
-                preventDefault: () => {}
-            });
+        document.getElementById('controls').addEventListener('click', (event) => {
+            const target = event.target;
+            if (target.classList.contains('controls-button')) {
+                const code = target.dataset.code;
+                const ctrlKey = 'ctrlKey' in target.dataset ? target.dataset.ctrlKey === "true": false;
+                grid.onKeydown({
+                    code,
+                    ctrlKey,
+                    stopPropagation: () => {},
+                    preventDefault: () => {}
+                });
+                updateInfo();
+            }
         });
-
-        document.getElementById('controls-delete-tiles').addEventListener('click', () => {
-            grid.onKeydown({
-                code: 'Delete',
-                stopPropagation: () => {},
-                preventDefault: () => {}
-            });
-        });
-
-        document.getElementById('controls-cycle-tiles').addEventListener('click', () => {
-            grid.onKeydown({
-                code: 'Space',
-                stopPropagation: () => {},
-                preventDefault: () => {}
-            });
-        });
-
-        document.getElementById('controls-move-left').addEventListener('click', () => {
-            grid.onKeydown({
-                code: 'ArrowLeft',
-                stopPropagation: () => {},
-                preventDefault: () => {}
-            });
-        });
-
-        document.getElementById('controls-move-right').addEventListener('click', () => {
-            grid.onKeydown({
-                code: 'ArrowRight',
-                stopPropagation: () => {},
-                preventDefault: () => {}
-            });
-        });
-
-        document.getElementById('controls-move-up').addEventListener('click', () => {
-            grid.onKeydown({
-                code: 'ArrowUp',
-                stopPropagation: () => {},
-                preventDefault: () => {}
-            });
-        });
-
-        document.getElementById('controls-move-down').addEventListener('click', () => {
-            grid.onKeydown({
-                code: 'ArrowDown',
-                stopPropagation: () => {},
-                preventDefault: () => {}
-            });
-        });
-
-        document.getElementById('controls-rotate-tiles').addEventListener('click', () => {
-            grid.onKeydown({
-                code: 'KeyR',
-                stopPropagation: () => {},
-                preventDefault: () => {}
-            });
-        });
-
-
+    
         document.getElementById('solve-button').addEventListener('click', () => {
             solverDialog.close();
             solve();
@@ -340,17 +290,19 @@
         <input id="close-tiles-and-colors-button" type="button" value="Close ">
     </dialog>
     <dialog id="controls">
-        <div class="controls-button" id="controls-add-tile">+</div>
-        <div class="controls-button" id="controls-delete-tiles">Del</div>
-        <div class="controls-button" id="controls-cycle-tiles">Cycle</div>
-        <div class="controls-button" id="controls-rotate-tiles">Rotate</div>
+        <div class="controls-button" data-code="KeyA">+</div>
+        <div class="controls-button" data-code="Delete">Del</div>
+        <div class="controls-button" data-code="Space">Cycle</div>
+        <div class="controls-button" data-code="KeyR">Rotate</div>
 
-        <div class="controls-button" id="controls-move-left">Left</div>
-        <div class="controls-button" id="controls-move-right">Right</div>
+        <div class="controls-button" data-code="ArrowLeft">Left</div>
+        <div class="controls-button" data-code="ArrowRight">Right</div>
 
 
-        <div class="controls-button" id="controls-move-up">Up</div>
-        <div class="controls-button" id="controls-move-down">Down</div>
+        <div class="controls-button" data-code="ArrowUp">Up</div>
+        <div class="controls-button" data-code="ArrowDown">Down</div>
+
+        <div class="controls-button"data-code="KeyA" data-ctrl-key="true">Select all</div>
         
         <input type="button" id="close-controls" value="Close">
     </dialog>
