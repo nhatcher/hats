@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hats and SAT Solvers</title>
-    <link href="style.css?version=0.1.1" rel="stylesheet" >
+    <link href="style.css?version=0.1.2" rel="stylesheet" >
     <link rel="stylesheet" href="vendor/coloris.min.css">
     <script src="vendor/coloris.min.js"></script>
     <script type="module">
@@ -275,7 +275,7 @@
         <input id="close-grid-options" type="button" value="Close">
     </dialog>
     <dialog id="help-dialog">
-        <div>Instructions</div>
+        <h2>Instructions</h2>
         <div>For On Screen Controls (mobile devices) click "Controls" in the toolbar</div>
         <ul>
             <li><span class="key">R</span> to rotate selected tiles (<span class="key">Shift</span>+<span class="key">R</span> to rotate the other way)</li>
@@ -286,6 +286,7 @@
             <li>Click on a tile to select it (<span class="key">Shift</span>+Click adds to selection)</li>
             <li><span class="key">Ctrl+A</span> to select all tiles</li>
         </ul>
+        <p>You can read the blog post for further <a href="https://www.nhatcher.com/post/on-hats-and-sats/">help</a></p>
         <div>Once ready you can click Solve to use a SAT solver. That will find hats that fill the current area. Note that there might be issues at the borders</div>
         <input id="close-help-dialog-button" type="button" value="Close">
     </dialog>
@@ -354,12 +355,21 @@
         <input type="button" id="close-controls" value="Close">
     </dialog>
     <dialog id="solver-options-dialog">
-        <div class="control-row">
+        <div>
+            <p>Click Solve to use a SAT solver to try to tile the visible area with the selected tiles</p>
+            <p>Beware that a large area with many tile types might take a long time</p>
+            <p>If you select "randomize" the order of clauses will be randomized before sending to the solver</p>
+            <p>The solver itself is not random</p>
+        </div>
+        <div class="solver-row">
             <input id="randomize" type="checkbox">
             <label for="randomize">Randomize</label>
         </div>
-        <input type="button" id="solve-button" value="Solve">
-        <input type="button" id="close-solver-options-dialog" value="Close">
+        <div style="display:flex">
+            <input type="button" id="solve-button" value="Solve">
+            <div class="spacer"></div>
+            <input type="button" id="close-solver-options-dialog" value="Close">
+        </div>
     </dialog>
     <dialog id="solving-dialog"><div>Please wait</div></dialog>
 </div>
