@@ -61,12 +61,27 @@ body {
 #controls {
     top: 30px;
     margin: 0px;
-    width: 300px;
+    width: 200px;
     border: 1px solid #EEE;
     border-radius: 5px;
     box-sizing: border-box;
-    background-color: #9ea3a838;
-    left: calc(100vw - 304px);
+    background-color: #9ea3a8c0;
+    left: calc(100vw - 204px);
+}
+
+#controls .controls-button {
+    padding: 5px;
+    background-color: #DDD;
+    border-radius: 5px;
+    border: 1px solid #333;
+    width: 120px;
+    text-align: center;
+    cursor: pointer;
+    margin: 10px; 
+}
+
+#controls .controls-button:hover {
+    background-color: #EEE;
 }
 
 #panels {
