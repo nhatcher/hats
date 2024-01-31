@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hats and SAT Solvers</title>
-    <link href="style.css?version=0.1.1" rel="stylesheet" />
-    <link rel="stylesheet" href="vendor/coloris.min.css"/>
+    <link href="style.css?version=0.1.1" rel="stylesheet" >
+    <link rel="stylesheet" href="vendor/coloris.min.css">
     <script src="vendor/coloris.min.js"></script>
     <script type="module">
         import createClauses, {fromIndexToTile, addHatsToClauses} from './clauses.js';
@@ -124,8 +124,6 @@
             myWorker.postMessage([data, clausesCount]);
         }
         
-        document.getElementById('solve-button').addEventListener('click', solve);
-        
         const helpDialog = document.getElementById('help-dialog');
         document.getElementById('close-help-dialog-button').addEventListener('click', () => {
             helpDialog.close();
@@ -156,6 +154,15 @@
         });
         document.getElementById('show-grid-options').addEventListener('click', () => {
             gridOptionsDialog.showModal();
+        });
+
+
+        const solverDialog = document.getElementById('solver-options-dialog');
+        document.getElementById('close-solver-options-dialog').addEventListener('click', () => {
+            solverDialog.close();
+        });
+        document.getElementById('show-solver-options-dialog').addEventListener('click', () => {
+            solverDialog.showModal();
         });
 
         /// On Screen Controls
@@ -224,6 +231,12 @@
         });
 
 
+        document.getElementById('solve-button').addEventListener('click', () => {
+            solverDialog.close();
+            solve();
+        });
+
+
         window.addEventListener('resize', (event) => {
             grid.setDimensions(window.innerWidth, window.innerHeight - 60);
             updateInfo();
@@ -237,32 +250,33 @@
         <div class="button" id="show-tiles-and-colors">Tiles</div>
         <div class="button" id="show-grid-options">Grid</div>
         <div class="button" id="show-controls">Controls</div>
-        <div class="button" id="solve-button">Solve</div></div>
+        <div class="button" id="show-solver-options-dialog">Solver</div>
+        <div class="spacer"></div>
+        <div class="button" id="show-help">Help</div>
+    </div>
     <canvas id="canvas" tabindex="0"></canvas>
     <div id="info">
         <div id="info-details"></div>
-        <span id="show-help">Help</span>
         <a id="github-logo" href="https://github.com/nhatcher/hats">
             <img src="vendor/github-mark.svg">
         </a>
     </div>
     <dialog id="grid-options">
         <div class="control-row"><span>Columns</span><input type="number" id="column-count" value="15" step="2"></div>
-        <div class="control-row"><input id="randomize" type="checkbox"/>
-            <label for="randomize">Randomize</label></div>
-        <div class="control-row"><input id="draw-spectres" type="checkbox"/>
+        <div class="control-row"><input id="draw-spectres" type="checkbox">
         <label for="draw-spectres">Draw Spectres</label></div>
 
-        <input type="range" value="0.5" min="0" max="2" step="0.01" id="spectre-ratio-a"/>
-        <input type="range" value="0.5" min="0" max="2" step="0.01" id="spectre-ratio-b"/>
+        <input type="range" value="0.5" min="0" max="2" step="0.01" id="spectre-ratio-a">
+        <input type="range" value="0.5" min="0" max="2" step="0.01" id="spectre-ratio-b">
 
-        <div class="control-row"><input id="show-grid" type="checkbox" checked/>
+        <div class="control-row"><input id="show-grid" type="checkbox" checked>
         <label for="show-grid">Show grid</label></div>
 
-        <input id="close-grid-options" type="button" value="Close"/>
+        <input id="close-grid-options" type="button" value="Close">
     </dialog>
     <dialog id="help-dialog">
         <div>Instructions</div>
+        <div>For On Screen Controls (mobile devices) click "Controls" in the toolbar</div>
         <ul>
             <li><span class="key">R</span> to rotate selected tiles (<span class="key">Shift</span>+<span class="key">R</span> to rotate the other way)</li>
             <li><span class="key">A</span> to add a new tile</li>
@@ -271,59 +285,58 @@
             <li><span class="key">Delete</span> to delete selected tiles</li>
             <li>Click on a tile to select it (<span class="key">Shift</span>+Click adds to selection)</li>
             <li><span class="key">Ctrl+A</span> to select all tiles</li>
-            <!-- <li><span class="key">Esc</span> escapes full screen</li> -->
         </ul>
         <div>Once ready you can click Solve to use a SAT solver. That will find hats that fill the current area. Note that there might be issues at the borders</div>
-        <input id="close-help-dialog-button" type="button" value="Close"/>
+        <input id="close-help-dialog-button" type="button" value="Close">
     </dialog>
     <dialog id="tiles-and-colors">
         <div id="color-scheme" class="extras">
             <div>
                 <span>Hat Colors:</span>
-                <input type="text" class="color hat" data-coloris value="#6494e433"/>
-                <input type="text" class="color hat" data-coloris value="#6494e433"/>
-                <input type="text" class="color hat" data-coloris value="#6494e433"/>
-                <input type="text" class="color hat" data-coloris value="#6494e433"/>
-                <input type="text" class="color hat" data-coloris value="#6494e433"/>
-                <input type="text" class="color hat" data-coloris value="#6494e433"/>
+                <input type="text" class="color hat" data-coloris value="#6494e433">
+                <input type="text" class="color hat" data-coloris value="#6494e433">
+                <input type="text" class="color hat" data-coloris value="#6494e433">
+                <input type="text" class="color hat" data-coloris value="#6494e433">
+                <input type="text" class="color hat" data-coloris value="#6494e433">
+                <input type="text" class="color hat" data-coloris value="#6494e433">
             </div><div>
                 <span>Anti-Hat Colors:</span>
-                <input type="text" class="color cher" data-coloris value="#34343433"/>
-                <input type="text" class="color cher" data-coloris value="#34343433"/>
-                <input type="text" class="color cher" data-coloris value="#34343433"/>
-                <input type="text" class="color cher" data-coloris value="#34343433"/>
-                <input type="text" class="color cher" data-coloris value="#34343433"/>
-                <input type="text" class="color cher" data-coloris value="#34343433"/>
+                <input type="text" class="color cher" data-coloris value="#34343433">
+                <input type="text" class="color cher" data-coloris value="#34343433">
+                <input type="text" class="color cher" data-coloris value="#34343433">
+                <input type="text" class="color cher" data-coloris value="#34343433">
+                <input type="text" class="color cher" data-coloris value="#34343433">
+                <input type="text" class="color cher" data-coloris value="#34343433">
             </div>
             <div>
                 <span>Turtle Colors:</span>
-                <input type="text" class="color turtle" data-coloris value="#d4553e33"/>
-                <input type="text" class="color turtle" data-coloris value="#d4553e33"/>
-                <input type="text" class="color turtle" data-coloris value="#d4553e33"/>
-                <input type="text" class="color turtle" data-coloris value="#d4553e33"/>
-                <input type="text" class="color turtle" data-coloris value="#d4553e33"/>
-                <input type="text" class="color turtle" data-coloris value="#d4553e33"/>
+                <input type="text" class="color turtle" data-coloris value="#d4553e33">
+                <input type="text" class="color turtle" data-coloris value="#d4553e33">
+                <input type="text" class="color turtle" data-coloris value="#d4553e33">
+                <input type="text" class="color turtle" data-coloris value="#d4553e33">
+                <input type="text" class="color turtle" data-coloris value="#d4553e33">
+                <input type="text" class="color turtle" data-coloris value="#d4553e33">
             </div><div>
                 <span>Anti-Turtle Colors:</span>
-                <input type="text" class="color anti-turtle" data-coloris value="#ffe60033"/>
-                <input type="text" class="color anti-turtle" data-coloris value="#ffe60033"/>
-                <input type="text" class="color anti-turtle" data-coloris value="#ffe60033"/>
-                <input type="text" class="color anti-turtle" data-coloris value="#ffe60033"/>
-                <input type="text" class="color anti-turtle" data-coloris value="#ffe60033"/>
-                <input type="text" class="color anti-turtle" data-coloris value="#ffe60033"/>
+                <input type="text" class="color anti-turtle" data-coloris value="#ffe60033">
+                <input type="text" class="color anti-turtle" data-coloris value="#ffe60033">
+                <input type="text" class="color anti-turtle" data-coloris value="#ffe60033">
+                <input type="text" class="color anti-turtle" data-coloris value="#ffe60033">
+                <input type="text" class="color anti-turtle" data-coloris value="#ffe60033">
+                <input type="text" class="color anti-turtle" data-coloris value="#ffe60033">
             </div>
         </div>
         <div id="tiles" class="extras">
-            <div class="control-row"><input id="tiles-hat" type="checkbox" checked/>
+            <div class="control-row"><input id="tiles-hat" type="checkbox" checked>
             <label for="tiles-hat">Hat</label></div>
-            <div class="control-row"><input id="tiles-anti-hat" type="checkbox" checked/>
+            <div class="control-row"><input id="tiles-anti-hat" type="checkbox" checked>
             <label for="tiles-anti-hat">Anti Hat</label></div>
-            <div class="control-row"><input id="tiles-turtle" type="checkbox"/>
+            <div class="control-row"><input id="tiles-turtle" type="checkbox">
             <label for="tiles-turle">Turtle</label></div>
-            <div class="control-row"><input id="tiles-anti-turtle" type="checkbox"/>
+            <div class="control-row"><input id="tiles-anti-turtle" type="checkbox">
             <label for="tiles-anit-turtle">Anti turtle</label></div>
         </div>
-        <input id="close-tiles-and-colors-button" type="button" value="Close "/>
+        <input id="close-tiles-and-colors-button" type="button" value="Close ">
     </dialog>
     <dialog id="controls">
         <div class="controls-button" id="controls-add-tile">+</div>
@@ -338,7 +351,15 @@
         <div class="controls-button" id="controls-move-up">Up</div>
         <div class="controls-button" id="controls-move-down">Down</div>
         
-        <input type="button" id="close-controls" value="Close"/>
+        <input type="button" id="close-controls" value="Close">
+    </dialog>
+    <dialog id="solver-options-dialog">
+        <div class="control-row">
+            <input id="randomize" type="checkbox">
+            <label for="randomize">Randomize</label>
+        </div>
+        <input type="button" id="solve-button" value="Solve">
+        <input type="button" id="close-solver-options-dialog" value="Close">
     </dialog>
     <dialog id="solving-dialog"><div>Please wait</div></dialog>
 </div>

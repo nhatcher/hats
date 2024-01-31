@@ -111,61 +111,12 @@ li {
     width: 20px;
 }
 
-#instructions {
-    /* display: none;
-    position:absolute;
-    left: 20px;
-    top: 20px;
-    width: 80%;
-    height: 80%;
-    padding: 20px;
-    border: 1px solid #EEE;
-    border-radius: 5px;
-    background-color: #f0ffebeb; */
-}
-
 #close-instructions-button {
     position: absolute;
     top: 5px;
     right: 5px;
 }
 
-#tiles-and-colors {
-    /* display: none;
-    position:absolute;
-    left: 20px;
-    top: 20px;
-    width: 80%;
-    height: 80%;
-    padding: 20px;
-    border: 1px solid #EEE;
-    border-radius: 5px;
-    background-color: #f0ffebeb;
-} */
-}
-
-#controls {
-    /* display: none;
-    position:absolute;
-    left: 20px;
-    top: 20px;
-    width: 80%;
-    height: 80%;
-    padding: 20px;
-    border: 1px solid #EEE;
-    border-radius: 5px;
-    background-color: #f0ffebeb;  */
-}
-
-#grid-options {
-    /* display: none;
-    position:absolute;
-    left: 20px;
-    top: 20px;
-    width: 80%;
-    height: 80%;
-    padding: 20px;
-    border: 1px solid #EEE;
-    border-radius: 5px;
-    background-color: #f0ffebeb;  */
+.spacer {
+    flex-grow: 2;
 }
