@@ -1,4 +1,5 @@
 import decorateTilesWithVertices from './spectre.js';
+import { hatAngles, turtleAngles } from './tiles.js';
 
 // enum Tiles {
 //     Hat=1,
@@ -82,7 +83,7 @@ class Grid {
     }
 
     getSelectedTiles = () => {
-        return this.tiles.filter( t => t.isSelected);
+        return this.tiles.filter(t => t.isSelected);
     }
 
     turn(point, alpha, l) {
@@ -361,7 +362,7 @@ class Grid {
         }
 
         for (const tile of this.tiles) {
-            this.drawHat(tile, ctx);
+            this.drawTile(tile, ctx);
         }
     }
 
@@ -398,46 +399,13 @@ class Grid {
         const ctx = this.ctx;
         const a = this.a;
         const b = this.b;
-        const hatEdges = [
-            [90, b],       // 1
-            [0, a],        // 2
-            [60, a],       // 3
-            [-30, b],      // 4
-            [-90, b],      // 5
-            [0, a],        // 6
-            [-60, a],      // 7
-            [-150, b],     // 8
-            [-210, b],     // 9
-            [-120, a],     // 10
-            [-180, a],     // 11
-            [-180, a],     // 12
-            [-240, a],     // 13
-            [30, b]        // 14
-        ];
-
-        const turtleEdges = [
-            [90, b],       // 1
-            [0, a],        // 2
-            [-60, a],      // 3
-            [30, b],       // 4
-            [-30, b],      // 5
-            [-120, a],     // 6
-            [-180, a],     // 7
-            [-90, b],      // 8
-            [-150, b],     // 9
-            [-150, b],     // 10
-            [-210, b],     // 11
-            [60, a],       // 12
-            [120, a],      // 13
-            [30, b],       // 14
-        ];
         const vertices = tile.vertices;
         const l = vertices.length;
         if (l !== vertices.length) {
             throw Error(`Vertices number do not match ${l} !== ${vertices.length}`);
         }
         const sign = [1, 3].includes(tile.kind) ? 1 : -1;
-        const edges = [1, 2].includes(tile.kind) ? hatEdges : turtleEdges;
+        const angles = [1, 2].includes(tile.kind) ? hatAngles : turtleAngles;
         let beta = tile.i * Math.PI / 3;
         if (tile.kind === 2) {
             beta += Math.PI;
@@ -460,8 +428,9 @@ class Grid {
 
                 }
             }
-            const edge = edges[vertexIndex];
-            const [xn, yn] = this.turn([x, y], sign * edge[0] * Math.PI / 180 + beta, edge[1]);
+            const angle = angles[vertexIndex];
+            const length = (angle + 30) % 60 === 0 ? b : a;
+            const [xn, yn] = this.turn([x, y], sign * angle * Math.PI / 180 + beta, length);
             coordinates.push([xn, yn]);
             x = xn;
             y = yn;
@@ -492,7 +461,7 @@ class Grid {
         ctx.fill();
     }
 
-    drawHat(tile, ctx) {
+    drawTile(tile, ctx) {
         const a = this.a;
         const b = this.b;
         let x = tile.m * 3 * a;
@@ -503,46 +472,15 @@ class Grid {
             beta += Math.PI;
         }
 
-        const hatEdges = [
-            [90, b],       // 2
-            [0, a],        // 3
-            [60, a],       // 4
-            [-30, b],      // 5
-            [-90, b],      // 6
-            [0, a],        // 7
-            [-60, a],      // 8
-            [-150, b],     // 9
-            [-210, b],     // 10
-            [-120, a],     // 11
-            [-180, 2 * a], // 12
-            [-240, a],     // 13
-            [30, b]        // 14
-        ];
-
-        const turtleEdges = [
-            [90, b],       // 1
-            [0, a],        // 2
-            [-60, a],      // 3
-            [30, b],       // 4
-            [-30, b],      // 5
-            [-120, a],     // 6
-            [-180, a],     // 7
-            [-90, b],      // 8
-            [-150, 2 * b], // 9
-            [-210, b],     // 10
-            [60, a],       // 11
-            [120, a],      // 12
-            [30, b],       // 13
-        ];
-
         ctx.beginPath();
 
         ctx.moveTo(x, y);
 
         const sign = [1, 3].includes(tile.kind) ? 1 : -1;
-        const edges = [1, 2].includes(tile.kind) ? hatEdges : turtleEdges;
-        for (const edge of edges) {
-            const [xn, yn] = this.turn([x, y], sign * edge[0] * Math.PI / 180 + beta, edge[1]);
+        const angles = [1, 2].includes(tile.kind) ? hatAngles : turtleAngles;
+        for (const angle of angles) {
+            const l = (angle + 30) % 60 === 0 ? b : a;
+            const [xn, yn] = this.turn([x, y], sign * angle * Math.PI / 180 + beta, l);
             ctx.lineTo(xn, yn);
             x = xn;
             y = yn;

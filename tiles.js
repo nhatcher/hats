@@ -1,6 +1,71 @@
 
-import { getKitesInHat, getKitesInAntiHat} from './hats.js';
-import { getKitesInTurtle, getKitesInAntiTurtle } from './turtles.js';
+
+export const hatAngles = [90, 0, 60, -30, -90, 0, -60, -150, -210, -120, -180, -180, -240, 30];
+
+export const turtleAngles = [90, 0, -60, 30, -30, -120, -180, -90, -150, -150, -210, 60, 120, 30];
+
+const getKitesInAntiHat = (tile) => {
+    const { m, n, i } = tile;
+    const kites = [2, 3, 4, 5].map(s => [m, n, (s + i) % 6]);
+    const vertices = [[1, -1], [0, -2], [-1, -1], [-1, 1], [0, 2], [1, 1]];
+
+    const vertex1 = vertices[(i + 3) % 6];
+    const vertex2 = vertices[(i + 2) % 6];
+
+    kites.push(...[1, 2].map(s => [vertex1[0] + m, vertex1[1] + n, (s + i) % 6]));
+    kites.push(...[0, 5].map(s => [vertex2[0] + m, vertex2[1] + n, (s + i) % 6]));
+
+    return kites;
+}
+
+const getKitesInHat = (tile) => {
+    const { m, n, i } = tile;
+    const kites = [0, 1, 4, 5].map(s => [m, n, (s + i) % 6]);
+    const vertices = [[1, -1], [0, -2], [-1, -1], [-1, 1], [0, 2], [1, 1]];
+
+    const vertex1 = vertices[(i + 5) % 6];
+    const vertex2 = vertices[i % 6];
+
+    kites.push(...[1, 2].map(s => [vertex1[0] + m, vertex1[1] + n, (s + i) % 6]));
+    kites.push(...[3, 4].map(s => [vertex2[0] + m, vertex2[1] + n, (s + i) % 6]));
+
+    return kites;
+}
+
+
+const getKitesInTurtle = (tile) => {
+    const {m, n, i} = tile;
+    const kites = [4, 5, 0, 1].map(s => [m, n, (s + i) % 6]);
+    const vertices = [[1, -1], [0, -2], [-1, -1], [-1, 1], [0, 2], [1, 1]];
+
+    const vertex1 = vertices[i];
+    const vertex2 = vertices[(i + 4) % 6];
+    const vertex3 = vertices[(i + 5) % 6];
+
+    kites.push(...[4, 5].map(s => [vertex1[0] + m, vertex1[1] + n, (s + i) % 6]));
+    kites.push(...[1, 2].map(s => [vertex2[0] + m, vertex2[1] + n, (s + i) % 6]));
+    kites.push(...[2, 3].map(s => [vertex3[0] + m, vertex3[1] + n, (s + i) % 6]));
+
+    return kites;
+}
+
+
+const getKitesInAntiTurtle = (tile) => {
+    const {m, n, i} = tile;
+    const kites = [5, 0, 1, 2].map(s => [m, n, (s + i) % 6]);
+    const vertices = [[1, -1], [0, -2], [-1, -1], [-1, 1], [0, 2], [1, 1]];
+
+    const vertex1 = vertices[(i + 5) % 6];
+    const vertex2 = vertices[i];
+    const vertex3 = vertices[(i + 1) % 6];
+
+    kites.push(...[1, 2].map(s => [vertex1[0] + m, vertex1[1] + n, (s + i) % 6]));
+    kites.push(...[3, 4].map(s => [vertex2[0] + m, vertex2[1] + n, (s + i) % 6]));
+    kites.push(...[4, 5].map(s => [vertex3[0] + m, vertex3[1] + n, (s + i) % 6]));
+
+    return kites;
+}
+
 
 export const getKitesInTile = (tile) => {
     switch (tile.kind) {
