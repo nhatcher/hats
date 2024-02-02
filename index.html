@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hats and SAT Solvers</title>
-    <link href="style.css?version=0.1.3" rel="stylesheet" >
+    <link href="style.css?version=0.1.4" rel="stylesheet" >
     <link rel="stylesheet" href="vendor/coloris.min.css">
     <script src="vendor/coloris.min.js"></script>
     <script type="module">
@@ -65,16 +65,13 @@
         });
 
         const redrawCanvas = (e) => {
-            const ratioAEl = document.getElementById('spectre-ratio-a');
-            const ratioBEl = document.getElementById('spectre-ratio-b');
             if (!document.getElementById('draw-spectres').checked) {
-                ratioAEl.style.display = 'none';
-                ratioBEl.style.display = 'none';
                 grid.redraw(e);
             } else {
-                ratioAEl.style.display = 'block';
-                ratioBEl.style.display = 'block';
-                grid.drawSpectres(ratioAEl.valueAsNumber, ratioBEl.valueAsNumber);
+                const ratioA = document.getElementById('spectre-ratio-a').valueAsNumber;
+                const ratioB = document.getElementById('spectre-ratio-b').valueAsNumber;
+                const scale = document.getElementById('spectre-ratio-scale').valueAsNumber;
+                grid.drawSpectres(ratioA*scale, ratioB*scale);
             }
             updateInfo();
         }
@@ -165,6 +162,56 @@
             solverDialog.showModal();
         });
 
+        const spectresDialog = document.getElementById('spectres-dialog');
+        document.getElementById('close-spectres-dialog').addEventListener('click', () => {
+            spectresDialog.close();
+        });
+        document.getElementById('show-spectres-dialog').addEventListener('click', () => {
+            spectresDialog.showModal();
+        });
+
+        spectresDialog.addEventListener('change', (event) => {
+            const target = event.target;
+            if (target.id === "draw-spectres") {
+                if (!target.checked) {
+                    const inputs = spectresDialog.getElementsByClassName('ratio');
+                    for (const ipt of inputs) {
+                        ipt.disabled = true;
+                    }
+                } else {
+                    const inputs = spectresDialog.getElementsByClassName('ratio');
+                    for (const ipt of inputs) {
+                        ipt.disabled = false;
+                    }
+                }
+            } else if (target.name === "spectre-radio") {
+                const ratioA = document.getElementById('spectre-ratio-a');
+                const ratioB = document.getElementById('spectre-ratio-b');
+                switch (target.value) {
+                    case 'chevron':
+                        ratioA.value = 0;
+                        ratioB.value = 1;
+                        break;
+                    case 'hat':
+                        ratioA.value = 1;
+                        ratioB.value = Math.sqrt(3);
+                        break;
+                    case 'spectre':
+                        ratioA.value = 1;
+                        ratioB.value = 1;
+                        break;
+                    case 'turtle':
+                        ratioA.value = Math.sqrt(3);
+                        ratioB.value = 1;
+                        break;
+                    case 'comet':
+                        ratioA.value = 1;
+                        ratioB.value = 0;
+                        break;
+                }
+            }
+        });
+
         /// On Screen Controls
         document.getElementById('controls').addEventListener('click', (event) => {
             const target = event.target;
@@ -200,6 +247,7 @@
         <div class="button" id="show-tiles-and-colors">Tiles</div>
         <div class="button" id="show-grid-options">Grid</div>
         <div class="button" id="show-solver-options-dialog">Solver</div>
+        <div class="button" id="show-spectres-dialog">Spectres</div>
         <div class="spacer"></div>
         <div class="button" id="show-controls">Controls</div>
         <div class="button" id="show-help">Help</div>
@@ -213,16 +261,50 @@
     </div>
     <dialog id="grid-options">
         <div class="control-row"><span>Columns</span><input type="number" id="column-count" value="15" step="2"></div>
-        <div class="control-row"><input id="draw-spectres" type="checkbox">
-        <label for="draw-spectres">Draw Spectres</label></div>
-
-        <input type="range" value="0.5" min="0" max="2" step="0.01" id="spectre-ratio-a">
-        <input type="range" value="0.5" min="0" max="2" step="0.01" id="spectre-ratio-b">
 
         <div class="control-row"><input id="show-grid" type="checkbox" checked>
         <label for="show-grid">Show grid</label></div>
 
         <input id="close-grid-options" type="button" value="Close">
+    </dialog>
+    <dialog id="spectres-dialog">
+        <div class="wrapper">
+            <div class="row"><input id="draw-spectres" type="checkbox">
+            <label for="draw-spectres">Draw Spectres</label></div>
+
+            <div class="row"><input class="ratio" type="range" value="1" min="0" max="2" step="any" id="spectre-ratio-scale" disabled><label for="spectre-ratio-scale">Scale</label></div>
+
+            <div class="row"><input class="ratio" type="range" value="1" min="0" max="2" step="any" id="spectre-ratio-a" disabled><label for="spectre-ratio-a">Length a</label></div>
+            <div class="row"><input class="ratio" type="range" value="1" min="0" max="2" step="any" id="spectre-ratio-b" disabled><label for="spectre-ratio-a">Length b</label></div>
+            <div class="row">
+                <div>
+                    <input class="ratio" type="radio" name="spectre-radio" value="chevron" disabled>
+                    <label for="chevron">Chevron</label>
+                </div>
+                <div>
+                    <input class="ratio" type="radio" name="spectre-radio" value="hat" disabled>
+                    <label for="hat">Hat</label>
+                </div>
+                <div>
+                    <input class="ratio" type="radio" name="spectre-radio" value="spectre" checked disabled>
+                    <label for="spectre">Spectre</label>
+                </div>
+                <div>
+                    <input class="ratio" type="radio" name="spectre-radio" value="turtle" disabled>
+                    <label for="turtle">Turtle</label>
+                </div>
+                <div>
+                    <input class="ratio" type="radio" name="spectre-radio" value="comet" disabled>
+                    <label for="comet">Comet</label>
+                </div>
+                <div>
+                    <input class="ratio" type="radio" name="spectre-radio" value="user" disabled>
+                    <label for="user">User defined</label>
+                </div>
+            </div>
+        </div>
+
+        <input id="close-spectres-dialog" type="button" value="Close">
     </dialog>
     <dialog id="help-dialog">
         <h2>Instructions</h2>

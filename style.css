@@ -85,9 +85,6 @@ body {
     background-color: #EEE;
 }
 
-#panels {
-    display: none;
-}
 
 li {
     padding: 6px 0px;
@@ -99,13 +96,6 @@ li {
     background-color: #DDD;
     padding: 4px;
     border-radius: 5px;
-}
-
-#hidden-input {
-    position: absolute;
-    left: -9999px;
-    top: -9999px;
-    /* display: none; */
 }
 
 .color {
@@ -124,4 +114,17 @@ li {
 
 .solver-row {
     padding-bottom: 20px
+}
+
+#spectres-dialog {
+    min-width: 300px;
+}
+
+#spectres-dialog .wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+#spectres-dialog .wrapper .row{
+    padding: 10px 0px;
 }
